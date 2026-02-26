@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens ──────────────────────────────────────── */
+:root {
+  --color-bg: #111814;
+  --color-bg-elevated: #1a261f;
+  --color-fg: #f5fbf7;
+  --color-fg-bone: #eaf3ed;
+  --color-accent: #548064;
+  --color-accent-soft: rgba(84, 128, 100, 0.14);
+  --color-muted: #839b8c;
+  --color-border-soft: rgba(255, 255, 255, 0.11);
+  --color-glass: rgba(255, 255, 255, 0.04);
+}
+
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-fg);
+  --color-accent: var(--color-accent);
+  --color-muted: var(--color-muted);
+}
+
+/* ─── Global Resets ──────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  cursor: none;
+}
+
+body {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+a,
+button,
+[role="button"] {
+  cursor: none;
+}
+
+/* ─── Selection ──────────────────────────────────────────── */
+::selection {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+/* ─── Smooth scroll container (Lenis) ────────────────────── */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ─── Utility Classes ────────────────────────────────────── */
+.text-gold {
+  color: var(--color-accent);
+}
+
+.line-gold {
+  background: linear-gradient(90deg, var(--color-accent), transparent);
+}
+
+.glow-accent {
+  box-shadow: 0 0 160px 60px var(--color-accent-soft);
+}
+
+/* Preloader */
+.preloader-clinic-bg {
+  background:
+    radial-gradient(circle at 18% 24%,
+      rgba(84, 128, 100, 0.1) 0%,
+      transparent 38%),
+    radial-gradient(circle at 82% 82%,
+      rgba(48, 70, 56, 0.2) 0%,
+      transparent 40%),
+    linear-gradient(160deg,
+      #111814 0%,
+      #1a261f 48%,
+      #151f19 100%);
+}
+
+.preloader-clinic-noise {
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.04) 0.45px, transparent 0.45px);
+  background-size: 2px 2px;
+  opacity: 0.11;
+}
+
+.preloader-card-glow {
+  background:
+    radial-gradient(circle at 50% 50%,
+      rgba(84, 128, 100, 0.16) 0%,
+      rgba(84, 128, 100, 0.08) 28%,
+      transparent 58%);
+  filter: blur(42px);
+}
+
+/* ─── Hide cursor on touch devices ───────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+
+  html,
+  body,
+  a,
+  button,
+  [role="button"] {
+    cursor: auto;
+  }
+}
