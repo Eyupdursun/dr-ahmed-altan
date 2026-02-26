@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
 
 interface SplitTextProps {
     text: string;
@@ -18,7 +19,7 @@ export default function SplitText({
 }: SplitTextProps) {
     const words = text.split(" ");
 
-    const containerVariants = {
+    const containerVariants: Variants = {
         hidden: {},
         visible: {
             transition: {
@@ -28,7 +29,7 @@ export default function SplitText({
         },
     };
 
-    const charVariants = {
+    const charVariants: Variants = {
         hidden: {
             y: 120,
             opacity: 0,

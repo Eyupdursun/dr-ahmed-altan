@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
+import {
+    AnimatePresence,
+    motion,
+    type Variants,
+    useScroll,
+    useTransform,
+} from "framer-motion";
 
 const HERO_VIDEO_SRC = "/images/projects/hero-background.mp4";
 const PRELOADER_COMPLETE_EVENT = "preloader:complete";
@@ -11,8 +17,10 @@ const HERO_HEADLINES = [
     "Trusted Expert in Hair Transplantation",
     "Dr. Ahmed Altan",
 ];
+const EASE_STANDARD: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const EASE_EXIT: [number, number, number, number] = [0.7, 0, 0.84, 0];
 
-const headlineVariants = {
+const headlineVariants: Variants = {
     initial: {
         opacity: 0,
         y: 54,
@@ -28,7 +36,7 @@ const headlineVariants = {
         filter: "blur(0px)",
         transition: {
             duration: 0.95,
-            ease: [0.16, 1, 0.3, 1],
+            ease: EASE_STANDARD,
             when: "beforeChildren",
             staggerChildren: 0.02,
             delayChildren: 0.08,
@@ -42,7 +50,7 @@ const headlineVariants = {
         filter: "blur(10px)",
         transition: {
             duration: 0.56,
-            ease: [0.7, 0, 0.84, 0],
+            ease: EASE_EXIT,
             when: "afterChildren",
             staggerChildren: 0.01,
             staggerDirection: -1,
@@ -50,12 +58,12 @@ const headlineVariants = {
     },
 };
 
-const headlineCharVariants = {
+const headlineCharVariants: Variants = {
     initial: { opacity: 0, y: 20 },
     animate: {
         opacity: 1,
         y: 0,
-        transition: { duration: 0.52, ease: [0.16, 1, 0.3, 1] },
+        transition: { duration: 0.52, ease: EASE_STANDARD },
     },
     exit: {
         opacity: 0,
