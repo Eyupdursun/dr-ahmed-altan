@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion, useMotionValueEvent, useScroll, useSpring, useTransform } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const STORY_STEPS = [
     "My name is Dr Ahmed Altan and I am the chief surgeon in our hair transplant clinic. I personally complete the most important steps of the procedure.",
@@ -18,6 +18,18 @@ const clampStep = (value: number, total: number) => {
 export default function AboutDrAltan() {
     const sectionRef = useRef<HTMLElement>(null);
     const [activeStep, setActiveStep] = useState(0);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const update = () => {
+            const mobile = window.matchMedia("(max-width: 767px)").matches;
+            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            setIsMobile(mobile || reducedMotion);
+        };
+        update();
+        window.addEventListener("resize", update);
+        return () => window.removeEventListener("resize", update);
+    }, []);
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
@@ -43,6 +55,77 @@ export default function AboutDrAltan() {
         const nextStep = clampStep(Math.floor(latest * total), total);
         setActiveStep((prev) => (prev === nextStep ? prev : nextStep));
     });
+
+    if (isMobile) {
+        return (
+            <section ref={sectionRef} className="relative w-full bg-[var(--color-bg)] py-16">
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute left-[8%] top-[14%] h-[34vh] w-[44vw] rounded-full bg-[rgba(84,128,100,0.14)] blur-[96px]" />
+                    <div className="absolute right-[8%] bottom-[12%] h-[36vh] w-[42vw] rounded-full bg-[rgba(255,255,255,0.05)] blur-[112px]" />
+                </div>
+
+                <div
+                    className="relative z-10 mx-auto w-full max-w-[760px] mobile-inline-gutter text-center"
+                    style={{ paddingLeft: 15, paddingRight: 15 }}
+                >
+                    <div className="inline-flex items-center gap-2.5 mb-5 rounded-full border border-[var(--color-border-soft)] bg-[var(--color-glass)] px-4 py-2 backdrop-blur-md">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
+                        <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-muted)]">
+                            About The Doctor
+                        </p>
+                    </div>
+
+                    <h2
+                        className="text-[clamp(2rem,9.6vw,3.4rem)] font-medium leading-[1.04] tracking-[-0.02em] text-[var(--color-fg-bone)]"
+                        style={{ fontFamily: "var(--font-playfair)" }}
+                    >
+                        Dr Ahmed Altan
+                    </h2>
+
+                    <p className="mt-4 text-base text-[var(--color-muted)] leading-relaxed">
+                        Our clinic is a specialist hair transplant clinic located in Turkiye, distinguished by an individual approach to each patient.
+                    </p>
+
+                    <div className="mt-8 rounded-[30px] border border-[var(--color-border-soft)] bg-[rgba(17,24,20,0.58)] p-5 backdrop-blur-md">
+                        <div className="relative aspect-[480/793] overflow-hidden rounded-[22px] border border-[var(--color-border-soft)] shadow-[0_22px_60px_rgba(0,0,0,0.45)]">
+                            <Image
+                                src="/images/projects/ahmed-altan-480x793.png"
+                                alt="Dr Ahmed Altan portrait"
+                                fill
+                                sizes="92vw"
+                                className="object-cover object-top"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/55" />
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_44%)]" />
+                        </div>
+                        <figcaption className="mt-4 inline-flex items-center rounded-full border border-[var(--color-border-soft)] bg-[var(--color-glass)] px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-[var(--color-fg-bone)]">
+                            Chief Surgeon
+                        </figcaption>
+                    </div>
+
+                    <div className="mt-8 space-y-4">
+                        {STORY_STEPS.map((paragraph, index) => (
+                            <motion.div
+                                key={`story-mobile-${index}`}
+                                className="rounded-[20px] border border-[var(--color-border-soft)] bg-[rgba(17,24,20,0.52)] p-5 text-center"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, amount: 0.26 }}
+                                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: index * 0.04 }}
+                            >
+                                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--color-muted)] mb-2">
+                                    {String(index + 1).padStart(2, "0")}
+                                </p>
+                                <p className="text-base text-[var(--color-fg-bone)]/88 leading-relaxed">
+                                    {paragraph}
+                                </p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section ref={sectionRef} className="relative h-[220vh] w-full bg-[var(--color-bg)]">

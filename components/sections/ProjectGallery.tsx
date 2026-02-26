@@ -3,12 +3,14 @@
 import { useRef, useCallback, useEffect, useState } from "react";
 import {
     motion,
+    useMotionValueEvent,
     useMotionTemplate,
     useScroll,
     useSpring,
     useTransform,
 } from "framer-motion";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import GalleryDOM from "@/components/three/GalleryDOM";
 import type { GalleryProject } from "@/components/three/GalleryCanvas";
 import { useLenis } from "@/components/layout/SmoothScrollProvider";
@@ -120,6 +122,7 @@ export default function ProjectGallery() {
     const sectionRef = useRef<HTMLElement>(null);
     const itemElements = useRef<(HTMLElement | null)[]>([]);
     const [isMobile, setIsMobile] = useState(false);
+    const [mobileStackProgress, setMobileStackProgress] = useState(0);
 
     const registerItem = useCallback((index: number, element: HTMLElement | null) => {
         itemElements.current[index] = element;
@@ -153,6 +156,102 @@ export default function ProjectGallery() {
     );
     const headerBlur = useTransform(sectionProgress, [0, 0.05, 0.95, 1], [10, 0, 0, 10]);
     const headerFilter = useMotionTemplate`blur(${headerBlur}px)`;
+
+    useMotionValueEvent(sectionProgress, "change", (latest) => {
+        if (!isMobile) return;
+        const normalized = clamp01((latest - 0.12) / 0.66);
+        const nextProgress = normalized * (projects.length - 1);
+        setMobileStackProgress(nextProgress);
+    });
+
+    if (isMobile) {
+        return (
+            <section ref={sectionRef} className="relative h-[420svh] w-full bg-[var(--color-bg)]">
+                <div className="sticky top-0 h-svh w-full overflow-hidden">
+                    <div
+                        className="mx-auto w-full max-w-[760px] mobile-inline-gutter text-center pt-8"
+                        style={{ paddingLeft: 15, paddingRight: 15 }}
+                    >
+                        <div className="mb-6">
+                            <div className="inline-flex items-center gap-2.5 mb-3 rounded-full border border-[var(--color-border-soft)] bg-[var(--color-glass)] px-4 py-2 backdrop-blur-md">
+                                <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
+                                <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-muted)]">
+                                    Our Solutions
+                                </p>
+                            </div>
+                            <h2
+                                className="text-[clamp(2rem,9vw,3.2rem)] font-medium leading-[1.04] text-[var(--color-fg-bone)] tracking-[-0.02em] text-center mx-auto"
+                                style={{ fontFamily: "var(--font-playfair)" }}
+                            >
+                                Precision Crafted for
+                                <span className="block text-white/82">Natural Results</span>
+                            </h2>
+                        </div>
+
+                        <div className="relative h-[74svh] overflow-hidden">
+                            {projects.map((project, index) => {
+                                const phase = index === 0
+                                    ? 0
+                                    : clamp01(index - mobileStackProgress);
+                                const yPercent = phase * 112;
+
+                                return (
+                                    <motion.article
+                                        key={project.title}
+                                        animate={{ y: `${yPercent}%` }}
+                                        transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                                        style={{ zIndex: index + 1 }}
+                                        className="absolute inset-x-0 top-0 h-full rounded-[28px] border border-[var(--color-border-soft)] bg-[rgba(17,24,20,0.94)] p-5 backdrop-blur-md text-center flex flex-col items-center"
+                                    >
+                                        <div className="flex items-center gap-3 mb-4 justify-center">
+                                            <span className="inline-flex min-w-9 justify-center rounded-full border border-[var(--color-accent)] bg-[var(--color-accent-soft)] px-3 py-1 text-[11px] text-[var(--color-fg-bone)] font-mono tracking-[0.08em]">
+                                                {String(index + 1).padStart(2, "0")}
+                                            </span>
+                                            <span className="inline-flex items-center rounded-full border border-[var(--color-border-soft)] bg-[var(--color-glass)] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--color-accent)]">
+                                                {project.category}
+                                            </span>
+                                        </div>
+
+                                        <h3
+                                            className="text-[clamp(1.8rem,8.4vw,2.7rem)] leading-[1.06] tracking-[-0.02em] text-[var(--color-fg-bone)] mb-4 mx-auto text-center text-balance"
+                                            style={{ fontFamily: "var(--font-playfair)", fontWeight: 500 }}
+                                        >
+                                            {project.title}
+                                        </h3>
+
+                                        <div className="mb-5 w-full aspect-[16/10] relative overflow-hidden rounded-[20px] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)]">
+                                            {project.image.trim() ? (
+                                                <Image
+                                                    src={project.image}
+                                                    alt={project.title}
+                                                    fill
+                                                    sizes="(max-width: 768px) 92vw, 720px"
+                                                    className="object-cover"
+                                                />
+                                            ) : (
+                                                <>
+                                                    <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/45" />
+                                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_26%_22%,rgba(255,255,255,0.11),transparent_46%)]" />
+                                                </>
+                                            )}
+                                        </div>
+
+                                        <p className="text-base text-[var(--color-muted)] leading-relaxed mb-5 text-center mx-auto max-w-[34ch]">
+                                            {project.description}
+                                        </p>
+
+                                        <span className="inline-flex w-fit items-center rounded-full border border-[var(--color-border-soft)] bg-white/[0.03] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--color-fg-bone)] opacity-80 mx-auto">
+                                            {project.tag}
+                                        </span>
+                                    </motion.article>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section ref={sectionRef} className="relative h-[400vh] w-full bg-[var(--color-bg)]">

@@ -88,6 +88,7 @@ export default function Hero() {
     const [introStarted, setIntroStarted] = useState(false);
     const [introCompleted, setIntroCompleted] = useState(false);
     const [headlineIndex, setHeadlineIndex] = useState(0);
+    const [isMobile, setIsMobile] = useState(false);
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
@@ -99,6 +100,15 @@ export default function Hero() {
     const scale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
     const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
     const overlayOpacity = useTransform(scrollYProgress, [0, 0.8], [0.38, 0.62]);
+
+    useEffect(() => {
+        const update = () => {
+            setIsMobile(window.matchMedia("(max-width: 767px)").matches);
+        };
+        update();
+        window.addEventListener("resize", update);
+        return () => window.removeEventListener("resize", update);
+    }, []);
 
     useEffect(() => {
         const root = document.documentElement;
@@ -237,7 +247,7 @@ export default function Hero() {
     return (
         <motion.section
             ref={sectionRef}
-            className={`relative h-screen min-h-[720px] flex items-center justify-center overflow-hidden ${canStartVideo ? "" : "pointer-events-none"}`}
+            className={`relative h-screen min-h-[640px] md:min-h-[720px] flex items-center justify-center overflow-hidden ${canStartVideo ? "" : "pointer-events-none"}`}
             initial={false}
             animate={{ opacity: canStartVideo ? 1 : 0 }}
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
@@ -342,7 +352,7 @@ export default function Hero() {
 
             {/* ─── Content ─── */}
             <motion.div
-                className="relative z-10 text-center px-6 w-full flex flex-col items-center justify-center"
+                className="relative z-10 text-center mobile-inline-gutter md:px-6 w-full flex flex-col items-center justify-center"
                 style={{ y, opacity, scale }}
             >
                 <motion.p
@@ -359,7 +369,7 @@ export default function Hero() {
                 </motion.p>
 
                 <motion.h1
-                    className="w-full text-[clamp(0.74rem,3.72vw,5.2rem)] leading-[1.02] font-semibold tracking-[-0.01em]"
+                    className="w-full text-[clamp(1.8rem,10vw,3.6rem)] md:text-[clamp(0.74rem,3.72vw,5.2rem)] leading-[1.02] font-semibold tracking-[-0.01em]"
                     style={{ fontFamily: "var(--font-playfair)" }}
                     initial={{ opacity: 0, y: 28, filter: "blur(12px)" }}
                     animate={
@@ -370,28 +380,34 @@ export default function Hero() {
                     transition={{ duration: 0.95, delay: 0.42, ease: [0.16, 1, 0.3, 1] }}
                 >
                     <div className="w-full flex items-center justify-center [perspective:1400px]">
-                        <div className="relative inline-grid place-items-center whitespace-nowrap">
-                            <AnimatePresence mode="wait" initial={false}>
-                                <motion.span
-                                    key={HERO_HEADLINES[headlineIndex]}
-                                    variants={headlineVariants}
-                                    initial="initial"
-                                    animate="animate"
-                                    exit="exit"
-                                    className="inline-flex whitespace-nowrap will-change-transform [transform-style:preserve-3d]"
-                                    style={{ transformOrigin: "50% 58%" }}
-                                >
-                                    {HERO_HEADLINES[headlineIndex].split("").map((char, index) => (
-                                        <motion.span
-                                            key={`${HERO_HEADLINES[headlineIndex]}-${index}`}
-                                            variants={headlineCharVariants}
-                                            className="inline-block"
-                                        >
-                                            {char === " " ? "\u00A0" : char}
-                                        </motion.span>
-                                    ))}
-                                </motion.span>
-                            </AnimatePresence>
+                        <div className={`relative inline-grid place-items-center ${isMobile ? "whitespace-normal max-w-[16ch]" : "whitespace-nowrap"}`}>
+                            {isMobile ? (
+                                <span className="text-balance">
+                                    Trusted Expert in Hair Transplantation
+                                </span>
+                            ) : (
+                                <AnimatePresence mode="wait" initial={false}>
+                                    <motion.span
+                                        key={HERO_HEADLINES[headlineIndex]}
+                                        variants={headlineVariants}
+                                        initial="initial"
+                                        animate="animate"
+                                        exit="exit"
+                                        className="inline-flex whitespace-nowrap will-change-transform [transform-style:preserve-3d]"
+                                        style={{ transformOrigin: "50% 58%" }}
+                                    >
+                                        {HERO_HEADLINES[headlineIndex].split("").map((char, index) => (
+                                            <motion.span
+                                                key={`${HERO_HEADLINES[headlineIndex]}-${index}`}
+                                                variants={headlineCharVariants}
+                                                className="inline-block"
+                                            >
+                                                {char === " " ? "\u00A0" : char}
+                                            </motion.span>
+                                        ))}
+                                    </motion.span>
+                                </AnimatePresence>
+                            )}
                         </div>
                     </div>
                 </motion.h1>
@@ -404,7 +420,7 @@ export default function Hero() {
                 />
 
                 <motion.p
-                    className="mt-7 text-[clamp(0.74rem,1.06vw,1.02rem)] text-[var(--color-fg-bone)] max-w-none mx-auto leading-relaxed font-light tracking-[0.01em] opacity-70 whitespace-nowrap"
+                    className="mt-7 text-[clamp(0.9rem,3.6vw,1.02rem)] md:text-[clamp(0.74rem,1.06vw,1.02rem)] text-[var(--color-fg-bone)] max-w-[32ch] md:max-w-none mx-auto leading-relaxed font-light tracking-[0.01em] opacity-70 whitespace-normal md:whitespace-nowrap"
                     initial={{ opacity: 0, y: 30 }}
                     animate={introStarted ? { opacity: 0.76, y: 0 } : { opacity: 0, y: 30 }}
                     transition={{ duration: 0.75, delay: 0.94, ease: [0.16, 1, 0.3, 1] }}

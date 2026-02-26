@@ -8,11 +8,13 @@ import EdgeIconRail from "@/components/ui/EdgeIconRail";
 
 export default function Home() {
   return (
-    <main>
+    <main className="mobile-stack-root">
       <EdgeIconRail />
 
       <Hero />
-      <AboutDrAltan />
+      <div className="mobile-stack-panel">
+        <AboutDrAltan />
+      </div>
       <ProjectGallery />
       <CustomerReviews />
       <FaqStory />

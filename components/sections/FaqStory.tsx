@@ -7,7 +7,7 @@ import {
     useSpring,
     useTransform,
 } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type FaqItem = {
     id: string;
@@ -74,6 +74,18 @@ const clampIndex = (value: number, total: number) =>
 export default function FaqStory() {
     const sectionRef = useRef<HTMLElement>(null);
     const [activeIndex, setActiveIndex] = useState(0);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const update = () => {
+            const mobile = window.matchMedia("(max-width: 767px)").matches;
+            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            setIsMobile(mobile || reducedMotion);
+        };
+        update();
+        window.addEventListener("resize", update);
+        return () => window.removeEventListener("resize", update);
+    }, []);
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
@@ -81,6 +93,7 @@ export default function FaqStory() {
     });
 
     useMotionValueEvent(scrollYProgress, "change", (latest) => {
+        if (isMobile) return;
         const nextIndex = clampIndex(Math.floor(latest * FAQ_ITEMS.length), FAQ_ITEMS.length);
         setActiveIndex((prev) => (prev === nextIndex ? prev : nextIndex));
     });
@@ -93,6 +106,81 @@ export default function FaqStory() {
         useTransform(scrollYProgress, [0, 1], [0, 1]),
         { stiffness: 140, damping: 30, mass: 0.85 }
     );
+
+    if (isMobile) {
+        return (
+            <section ref={sectionRef} className="relative w-full bg-[var(--color-bg)] py-16">
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-[18%] left-[8%] h-[30vh] w-[42vw] rounded-full bg-[rgba(84,128,100,0.12)] blur-[94px]" />
+                    <div className="absolute right-[10%] bottom-[12%] h-[30vh] w-[42vw] rounded-full bg-[rgba(255,255,255,0.05)] blur-[112px]" />
+                </div>
+
+                <div
+                    className="relative z-10 mx-auto w-full max-w-[760px] mobile-inline-gutter text-center"
+                    style={{ paddingLeft: 15, paddingRight: 15 }}
+                >
+                    <div className="inline-flex items-center gap-2.5 mb-4 rounded-full border border-[var(--color-border-soft)] bg-[var(--color-glass)] px-4 py-2 backdrop-blur-md">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
+                        <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-muted)]">
+                            FAQ
+                        </p>
+                    </div>
+                    <h2
+                        className="text-[clamp(2rem,9vw,3.2rem)] leading-[1.04] tracking-[-0.02em] text-[var(--color-fg-bone)]"
+                        style={{ fontFamily: "var(--font-playfair)" }}
+                    >
+                        Common Questions
+                    </h2>
+
+                    <div className="mt-8 space-y-4">
+                        {FAQ_ITEMS.map((faq, index) => {
+                            const isActive = activeIndex === index;
+                            return (
+                                <motion.article
+                                    key={faq.id}
+                                    className="rounded-[24px] border border-[var(--color-border-soft)] bg-[rgba(17,24,20,0.58)] p-5 backdrop-blur-md text-center"
+                                    initial={{ opacity: 0, y: 30 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, amount: 0.25 }}
+                                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: index * 0.03 }}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveIndex(index)}
+                                        className="w-full text-center"
+                                    >
+                                        <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--color-muted)] mb-2">
+                                            Q{String(index + 1).padStart(2, "0")}
+                                        </p>
+                                        <h3 className="text-[clamp(1.35rem,6vw,2rem)] leading-[1.1] tracking-[-0.02em] text-[var(--color-fg-bone)] font-semibold">
+                                            {faq.question}
+                                        </h3>
+                                    </button>
+
+                                    <div
+                                        className={`grid transition-all duration-500 ease-out ${isActive ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0 mt-0"}`}
+                                    >
+                                        <div className="overflow-hidden">
+                                            <div className="space-y-4">
+                                                {faq.paragraphs.map((paragraph, paragraphIndex) => (
+                                                    <p
+                                                        key={`${faq.id}-mobile-${paragraphIndex}`}
+                                                        className="text-base leading-relaxed text-[var(--color-muted)]"
+                                                    >
+                                                        {paragraph}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.article>
+                            );
+                        })}
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     const activeFaq = FAQ_ITEMS[activeIndex];
 

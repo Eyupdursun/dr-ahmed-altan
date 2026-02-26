@@ -128,3 +128,29 @@ html.lenis body {
     cursor: auto;
   }
 }
+
+/* ─── Mobile Stack Panels ────────────────────────────────── */
+@media (max-width: 767px) {
+  .mobile-inline-gutter {
+    padding-left: calc(15px + env(safe-area-inset-left));
+    padding-right: calc(15px + env(safe-area-inset-right));
+  }
+
+  .mobile-stack-root {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .mobile-stack-panel {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: clip;
+  }
+
+  .mobile-stack-panel > * {
+    min-height: 100svh;
+    width: 100%;
+  }
+
+}
