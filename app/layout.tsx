@@ -4,6 +4,7 @@ import "./globals.css";
 import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
 import CustomCursor from "@/components/ui/CustomCursor";
 import Preloader from "@/components/ui/Preloader";
+import Header from "@/components/ui/Header";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -12,7 +13,7 @@ const inter = Inter({
 });
 
 const manrope = Manrope({
-  variable: "--font-playfair",
+  variable: "--font-manrope",
   subsets: ["latin"],
   display: "swap",
 });
@@ -39,6 +40,7 @@ export default function RootLayout({
       <body className="antialiased">
         <SmoothScrollProvider>
           <Preloader />
+          <Header />
           <CustomCursor />
           {children}
         </SmoothScrollProvider>

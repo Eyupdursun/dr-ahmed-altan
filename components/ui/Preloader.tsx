@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const PRELOADER_COMPLETE_EVENT = "preloader:complete";
-const MIN_PRELOADER_VISIBLE_MS = 2200;
-const REDUCED_MOTION_MIN_MS = 700;
+const MIN_PRELOADER_VISIBLE_MS = 1500;
+const REDUCED_MOTION_MIN_MS = 420;
 
 export default function Preloader() {
     const [isActive, setIsActive] = useState(true);
@@ -107,26 +108,34 @@ export default function Preloader() {
             animate={isExiting ? { opacity: 0 } : { opacity: 1 }}
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         >
-            <div className="absolute inset-0 bg-[var(--color-bg)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(180,203,255,0.14),transparent_44%)]" />
+            <div className="absolute inset-0 bg-[var(--color-hero-bg)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_24%,rgba(109,129,104,0.22),transparent_32%),radial-gradient(circle_at_78%_72%,rgba(255,255,255,0.08),transparent_26%),linear-gradient(180deg,rgba(16,23,18,0.92),rgba(11,16,13,1))]" />
 
             <div className="relative h-full flex items-center justify-center px-6">
                 <div className="w-[min(82vw,520px)]">
-                    <p className="text-[11px] uppercase tracking-[0.34em] text-[var(--color-fg-bone)]/88 text-center">
+                    <Image
+                        src="/images/projects/ahmed-altan-logo-icon.png"
+                        alt="Dr. Ahmed Altan"
+                        width={84}
+                        height={84}
+                        className="mx-auto object-contain"
+                        priority
+                    />
+                    <p className="mt-6 text-center text-[11px] uppercase tracking-[0.32em] text-[var(--color-hero-muted)]">
                         Dr. Ahmed Altan
                     </p>
-                    <p className="mt-2 text-[10px] uppercase tracking-[0.24em] text-[var(--color-muted)] text-center">
-                        Loading
+                    <p className="mt-2 text-center text-[10px] uppercase tracking-[0.24em] text-[var(--color-hero-muted)]/86">
+                        Loading…
                     </p>
 
-                    <div className="mt-7 h-[2px] rounded-full bg-white/16 overflow-hidden">
+                    <div className="mt-8 h-[2px] rounded-full bg-white/14 overflow-hidden">
                         <motion.div
-                            className="h-full bg-gradient-to-r from-[var(--color-accent)] to-white"
+                            className="h-full bg-gradient-to-r from-[var(--color-accent)] via-white/80 to-white"
                             style={{ width: `${rounded}%` }}
                         />
                     </div>
 
-                    <p className="mt-3 text-[10px] uppercase tracking-[0.2em] text-[var(--color-muted)] text-right">
+                    <p className="mt-3 text-right text-[10px] uppercase tracking-[0.2em] text-[var(--color-hero-muted)]/78">
                         {String(rounded).padStart(2, "0")}%
                     </p>
                 </div>

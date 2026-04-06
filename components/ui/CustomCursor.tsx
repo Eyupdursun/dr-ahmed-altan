@@ -3,123 +3,124 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
+const INTERACTIVE_SELECTOR =
+  "a, button, [role=\"button\"], input, textarea, select, summary, label[for], [data-cursor-hover]";
+
 export default function CustomCursor() {
-    const cursorRef = useRef<HTMLDivElement>(null);
-    const [isHovering, setIsHovering] = useState(false);
-    const [isVisible, setIsVisible] = useState(false);
-    const position = useRef({ x: 0, y: 0 });
-    const animatedPosition = useRef({ x: 0, y: 0 });
-    const rafId = useRef<number>(0);
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const hoverRef = useRef(false);
+  const visibleRef = useRef(false);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(false);
+  const position = useRef({ x: 0, y: 0 });
+  const animatedPosition = useRef({ x: 0, y: 0 });
+  const rafId = useRef<number>(0);
 
-    useEffect(() => {
-        // Check for touch device
-        const isTouchDevice =
-            "ontouchstart" in window || navigator.maxTouchPoints > 0;
-        if (isTouchDevice) return;
+  useEffect(() => {
+    const media = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const sync = () => setIsEnabled(media.matches);
 
-        const handleMouseMove = (e: MouseEvent) => {
-            position.current = { x: e.clientX, y: e.clientY };
-            if (!isVisible) setIsVisible(true);
-        };
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
-        const handleMouseEnterInteractive = () => setIsHovering(true);
-        const handleMouseLeaveInteractive = () => setIsHovering(false);
+  useEffect(() => {
+    const root = document.documentElement;
 
-        const handleMouseLeave = () => setIsVisible(false);
-        const handleMouseEnter = () => setIsVisible(true);
+    if (isEnabled) {
+      root.dataset.cursorReady = "true";
+    } else {
+      delete root.dataset.cursorReady;
+    }
 
-        // Animate cursor position with lerp for smoothness
-        function animate() {
-            const lerp = 0.15;
-            animatedPosition.current.x +=
-                (position.current.x - animatedPosition.current.x) * lerp;
-            animatedPosition.current.y +=
-                (position.current.y - animatedPosition.current.y) * lerp;
+    return () => {
+      delete root.dataset.cursorReady;
+    };
+  }, [isEnabled]);
 
-            if (cursorRef.current) {
-                cursorRef.current.style.transform = `translate3d(${animatedPosition.current.x}px, ${animatedPosition.current.y}px, 0)`;
-            }
+  useEffect(() => {
+    if (!isEnabled) return;
 
-            rafId.current = requestAnimationFrame(animate);
-        }
+    const setHoverState = (nextState: boolean) => {
+      if (hoverRef.current === nextState) return;
+      hoverRef.current = nextState;
+      setIsHovering(nextState);
+    };
 
-        rafId.current = requestAnimationFrame(animate);
+    const setVisibility = (nextState: boolean) => {
+      if (visibleRef.current === nextState) return;
+      visibleRef.current = nextState;
+      setIsVisible(nextState);
+    };
 
-        // Listen for mouse events
-        window.addEventListener("mousemove", handleMouseMove);
-        document.addEventListener("mouseleave", handleMouseLeave);
-        document.addEventListener("mouseenter", handleMouseEnter);
+    const handlePointerMove = (event: PointerEvent) => {
+      position.current = { x: event.clientX, y: event.clientY };
+      setVisibility(true);
 
-        // Attach hover listeners to interactive elements
-        const interactiveElements = document.querySelectorAll(
-            'a, button, [role="button"], input, textarea, select, [data-cursor-hover]'
-        );
-        interactiveElements.forEach((el) => {
-            el.addEventListener("mouseenter", handleMouseEnterInteractive);
-            el.addEventListener("mouseleave", handleMouseLeaveInteractive);
-        });
+      if (event.target instanceof Element) {
+        setHoverState(Boolean(event.target.closest(INTERACTIVE_SELECTOR)));
+      }
+    };
 
-        return () => {
-            cancelAnimationFrame(rafId.current);
-            window.removeEventListener("mousemove", handleMouseMove);
-            document.removeEventListener("mouseleave", handleMouseLeave);
-            document.removeEventListener("mouseenter", handleMouseEnter);
-            interactiveElements.forEach((el) => {
-                el.removeEventListener("mouseenter", handleMouseEnterInteractive);
-                el.removeEventListener("mouseleave", handleMouseLeaveInteractive);
-            });
-        };
-    }, [isVisible]);
+    const handlePointerLeave = () => setVisibility(false);
+    const handlePointerEnter = () => setVisibility(true);
 
-    // Use MutationObserver to re-attach hover listeners when DOM changes
-    useEffect(() => {
-        const isTouchDevice =
-            "ontouchstart" in window || navigator.maxTouchPoints > 0;
-        if (isTouchDevice) return;
+    const animate = () => {
+      const lerp = 0.15;
 
-        const handleMouseEnterInteractive = () => setIsHovering(true);
-        const handleMouseLeaveInteractive = () => setIsHovering(false);
+      animatedPosition.current.x +=
+        (position.current.x - animatedPosition.current.x) * lerp;
+      animatedPosition.current.y +=
+        (position.current.y - animatedPosition.current.y) * lerp;
 
-        const observer = new MutationObserver(() => {
-            const interactiveElements = document.querySelectorAll(
-                'a, button, [role="button"], input, textarea, select, [data-cursor-hover]'
-            );
-            interactiveElements.forEach((el) => {
-                el.removeEventListener("mouseenter", handleMouseEnterInteractive);
-                el.removeEventListener("mouseleave", handleMouseLeaveInteractive);
-                el.addEventListener("mouseenter", handleMouseEnterInteractive);
-                el.addEventListener("mouseleave", handleMouseLeaveInteractive);
-            });
-        });
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${animatedPosition.current.x}px, ${animatedPosition.current.y}px, 0)`;
+      }
 
-        observer.observe(document.body, { childList: true, subtree: true });
+      rafId.current = requestAnimationFrame(animate);
+    };
 
-        return () => observer.disconnect();
-    }, []);
+    rafId.current = requestAnimationFrame(animate);
 
-    return (
-        <motion.div
-            ref={cursorRef}
-            className="fixed top-0 left-0 pointer-events-none z-[9999]"
-            style={{
-                mixBlendMode: "difference",
-            }}
-            animate={{
-                width: isHovering ? 64 : 24,
-                height: isHovering ? 64 : 24,
-                marginLeft: isHovering ? -32 : -12,
-                marginTop: isHovering ? -32 : -12,
-                opacity: isVisible ? 1 : 0,
-            }}
-            transition={{
-                width: { type: "spring", stiffness: 300, damping: 25 },
-                height: { type: "spring", stiffness: 300, damping: 25 },
-                marginLeft: { type: "spring", stiffness: 300, damping: 25 },
-                marginTop: { type: "spring", stiffness: 300, damping: 25 },
-                opacity: { duration: 0.2 },
-            }}
-        >
-            <div className="w-full h-full rounded-full bg-white" />
-        </motion.div>
-    );
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    document.addEventListener("pointerleave", handlePointerLeave);
+    document.addEventListener("pointerenter", handlePointerEnter);
+
+    return () => {
+      cancelAnimationFrame(rafId.current);
+      window.removeEventListener("pointermove", handlePointerMove);
+      document.removeEventListener("pointerleave", handlePointerLeave);
+      document.removeEventListener("pointerenter", handlePointerEnter);
+    };
+  }, [isEnabled]);
+
+  if (!isEnabled) return null;
+
+  return (
+    <motion.div
+      ref={cursorRef}
+      className="pointer-events-none fixed left-0 top-0 z-[9999]"
+      animate={{
+        width: isHovering ? 34 : 24,
+        height: isHovering ? 34 : 24,
+        marginLeft: isHovering ? -17 : -12,
+        marginTop: isHovering ? -17 : -12,
+        opacity: isVisible ? 1 : 0,
+        scale: isHovering ? 1.06 : 1,
+      }}
+      transition={{
+        width: { type: "spring", stiffness: 320, damping: 30 },
+        height: { type: "spring", stiffness: 320, damping: 30 },
+        marginLeft: { type: "spring", stiffness: 320, damping: 30 },
+        marginTop: { type: "spring", stiffness: 320, damping: 30 },
+        scale: { type: "spring", stiffness: 280, damping: 24 },
+        opacity: { duration: 0.2 },
+      }}
+    >
+      <div className="absolute inset-0 rounded-full border border-[rgba(242,245,238,0.92)] bg-white/5 shadow-[0_0_0_1px_rgba(16,23,18,0.18),0_10px_22px_rgba(16,23,18,0.18)]" />
+      <div className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-accent-strong)] shadow-[0_0_0_2px_rgba(255,255,255,0.7)]" />
+    </motion.div>
+  );
 }

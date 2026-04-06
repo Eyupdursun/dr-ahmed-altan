@@ -1,232 +1,110 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useMotionValueEvent, useScroll, useSpring, useTransform } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-
-const STORY_STEPS = [
-    "My name is Dr Ahmed Altan and I am the chief surgeon in our hair transplant clinic. I personally complete the most important steps of the procedure.",
-    "The number of monthly treatments is intentionally limited to only several dozen, and my presence during each hair transplant stands for our quality and professionalism.",
-    "The price, quality and short waiting time for the treatment are the greatest benefits of hair transplant in our clinic in Turkiye.",
-    "Having representatives of the clinic in many European countries, we encourage you to meet them in your country and get the best advice before having hair transplantation in Turkiye.",
-];
-
-const clampStep = (value: number, total: number) => {
-    return Math.max(0, Math.min(total - 1, value));
-};
+import BodySectionVeil from "@/components/ui/BodySectionVeil";
+import { LEAD_DOCTOR } from "@/lib/siteContent";
 
 export default function AboutDrAltan() {
-    const sectionRef = useRef<HTMLElement>(null);
-    const [activeStep, setActiveStep] = useState(0);
-    const [isMobile, setIsMobile] = useState(false);
+  const doctor = LEAD_DOCTOR;
 
-    useEffect(() => {
-        const update = () => {
-            const mobile = window.matchMedia("(max-width: 767px)").matches;
-            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            setIsMobile(mobile || reducedMotion);
-        };
-        update();
-        window.addEventListener("resize", update);
-        return () => window.removeEventListener("resize", update);
-    }, []);
+  return (
+    <section
+      id="doctor"
+      data-nav-section
+      data-header-tone="dark"
+      className="body-section relative min-h-screen h-svh overflow-hidden"
+    >
+      <BodySectionVeil variant="body" />
 
-    const { scrollYProgress } = useScroll({
-        target: sectionRef,
-        offset: ["start start", "end end"],
-    });
+      <div className="site-shell relative flex h-full flex-col pt-[calc(var(--header-height)+28px)] pb-6 md:pt-[calc(var(--header-height)+34px)] md:pb-8">
+        {/* ── header ── */}
+        <div className="section-shell shrink-0">
+          <p className="section-label">
+            <span className="section-label-line" />
+            Lead Surgeon
+          </p>
+        </div>
 
-    const imageY = useSpring(
-        useTransform(scrollYProgress, [0, 1], [24, -24]),
-        { stiffness: 110, damping: 24, mass: 0.9 }
-    );
-    const imageRotate = useTransform(scrollYProgress, [0, 1], [-2.5, 2]);
-    const copyY = useSpring(
-        useTransform(scrollYProgress, [0, 1], [12, -12]),
-        { stiffness: 120, damping: 26, mass: 0.9 }
-    );
-    const timelineProgress = useSpring(
-        useTransform(scrollYProgress, [0.08, 0.92], [0, 1]),
-        { stiffness: 140, damping: 28, mass: 0.85 }
-    );
+        {/* ── main content — fills remaining space ── */}
+        <div className="section-shell mt-3 flex flex-1 items-center min-h-0 md:mt-4">
+          <div className="grid w-full items-center gap-6 lg:grid-cols-[1fr_minmax(0,0.48fr)] lg:gap-10 xl:gap-14">
+            {/* ── left: text ── */}
+            <div className="order-2 flex flex-col lg:order-1">
+              <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--color-accent-strong)]">
+                {doctor.role}
+              </p>
+              <h2 className="mt-3 max-w-[10ch] font-[var(--font-manrope)] text-[clamp(2.8rem,7vw,6rem)] leading-[0.92] tracking-[-0.07em] text-[var(--color-ink)]">
+                {doctor.name}
+              </h2>
 
-    useMotionValueEvent(scrollYProgress, "change", (latest) => {
-        const total = STORY_STEPS.length;
-        const nextStep = clampStep(Math.floor(latest * total), total);
-        setActiveStep((prev) => (prev === nextStep ? prev : nextStep));
-    });
+              <div className="mt-5 h-px bg-[var(--color-soft-line)] md:mt-6" />
 
-    if (isMobile) {
-        return (
-            <section ref={sectionRef} className="relative w-full bg-[var(--color-bg)] py-16">
-                <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute left-[8%] top-[14%] h-[34vh] w-[44vw] rounded-full bg-[rgba(84,128,100,0.14)] blur-[96px]" />
-                    <div className="absolute right-[8%] bottom-[12%] h-[36vh] w-[42vw] rounded-full bg-[rgba(255,255,255,0.05)] blur-[112px]" />
-                </div>
+              <p className="mt-5 max-w-[40ch] text-[clamp(0.92rem,1.1vw,1.08rem)] leading-[1.72] text-[var(--color-muted-ink)] md:mt-6">
+                {doctor.summary}
+              </p>
 
-                <div
-                    className="relative z-10 mx-auto w-full max-w-[760px] mobile-inline-gutter text-center"
-                    style={{ paddingLeft: 15, paddingRight: 15 }}
-                >
-                    <div className="inline-flex items-center gap-2.5 mb-5 rounded-full border border-[var(--color-border-soft)] bg-[var(--color-glass)] px-4 py-2 backdrop-blur-md">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
-                        <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-muted)]">
-                            About The Doctor
-                        </p>
-                    </div>
-
-                    <h2
-                        className="text-[clamp(2rem,9.6vw,3.4rem)] font-medium leading-[1.04] tracking-[-0.02em] text-[var(--color-fg-bone)]"
-                        style={{ fontFamily: "var(--font-playfair)" }}
-                    >
-                        Dr Ahmed Altan
-                    </h2>
-
-                    <p className="mt-4 text-base text-[var(--color-muted)] leading-relaxed">
-                        Our clinic is a specialist hair transplant clinic located in Turkiye, distinguished by an individual approach to each patient.
+              {/* highlights grid */}
+              <div className="mt-6 grid gap-2.5 sm:grid-cols-2 md:mt-7">
+                {doctor.highlights.map((highlight, index) => (
+                  <article
+                    key={`highlight-${index}`}
+                    className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3.5 transition-colors duration-300 hover:border-[rgba(109,129,104,0.2)] hover:bg-white/[0.04] md:px-5 md:py-4"
+                  >
+                    <p className="text-[0.65rem] uppercase tracking-[0.28em] text-[var(--color-muted-ink)]">
+                      {String(index + 1).padStart(2, "0")}
                     </p>
-
-                    <div className="mt-8 rounded-[30px] border border-[var(--color-border-soft)] bg-[rgba(17,24,20,0.58)] p-5 backdrop-blur-md">
-                        <div className="relative aspect-[480/793] overflow-hidden rounded-[22px] border border-[var(--color-border-soft)] shadow-[0_22px_60px_rgba(0,0,0,0.45)]">
-                            <Image
-                                src="/images/projects/ahmed-altan-480x793.png"
-                                alt="Dr Ahmed Altan portrait"
-                                fill
-                                sizes="92vw"
-                                className="object-cover object-top"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/55" />
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_44%)]" />
-                        </div>
-                        <figcaption className="mt-4 inline-flex items-center rounded-full border border-[var(--color-border-soft)] bg-[var(--color-glass)] px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-[var(--color-fg-bone)]">
-                            Chief Surgeon
-                        </figcaption>
-                    </div>
-
-                    <div className="mt-8 space-y-4">
-                        {STORY_STEPS.map((paragraph, index) => (
-                            <motion.div
-                                key={`story-mobile-${index}`}
-                                className="rounded-[20px] border border-[var(--color-border-soft)] bg-[rgba(17,24,20,0.52)] p-5 text-center"
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, amount: 0.26 }}
-                                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: index * 0.04 }}
-                            >
-                                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--color-muted)] mb-2">
-                                    {String(index + 1).padStart(2, "0")}
-                                </p>
-                                <p className="text-base text-[var(--color-fg-bone)]/88 leading-relaxed">
-                                    {paragraph}
-                                </p>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-        );
-    }
-
-    return (
-        <section ref={sectionRef} className="relative h-[220vh] w-full bg-[var(--color-bg)]">
-            <div className="sticky top-0 h-screen overflow-hidden">
-                <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute left-[8%] top-[14%] h-[34vh] w-[26vw] rounded-full bg-[rgba(84,128,100,0.14)] blur-[96px]" />
-                    <div className="absolute right-[8%] bottom-[12%] h-[36vh] w-[28vw] rounded-full bg-[rgba(255,255,255,0.05)] blur-[112px]" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_24%,rgba(255,255,255,0.06),transparent_48%)]" />
-                </div>
-
-                <div className="relative z-10 h-full w-full px-4 md:px-8 lg:px-10">
-                    <div className="mx-auto flex h-full w-full items-center justify-center">
-                        <div className="grid w-full max-w-[1160px] items-center justify-items-center gap-8 md:gap-10 lg:gap-12 md:grid-cols-[440px_620px]">
-                        <motion.figure
-                            className="relative mx-auto md:mx-0 w-full max-w-[440px]"
-                            style={{ y: imageY, rotate: imageRotate }}
-                        >
-                            <div className="relative aspect-[480/793] overflow-hidden rounded-[30px] border border-[var(--color-border-soft)] shadow-[0_30px_90px_rgba(0,0,0,0.5)]">
-                                <Image
-                                    src="/images/projects/ahmed-altan-480x793.png"
-                                    alt="Dr Ahmed Altan portrait"
-                                    fill
-                                    sizes="(max-width: 768px) 84vw, 420px"
-                                    className="object-cover object-top"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/55" />
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_44%)]" />
-                            </div>
-
-                            <figcaption className="mt-4 inline-flex items-center rounded-full border border-[var(--color-border-soft)] bg-[var(--color-glass)] px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-[var(--color-fg-bone)]">
-                                Chief Surgeon
-                            </figcaption>
-                        </motion.figure>
-
-                            <motion.div className="relative w-full max-w-[620px] md:justify-self-start" style={{ y: copyY }}>
-                            <div className="inline-flex items-center gap-2.5 mb-5 rounded-full border border-[var(--color-border-soft)] bg-[var(--color-glass)] px-4 py-2 backdrop-blur-md">
-                                <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
-                                <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-muted)]">
-                                    About The Doctor
-                                </p>
-                            </div>
-
-                            <h2
-                                className="text-[clamp(2.2rem,4.3vw,4.25rem)] font-medium leading-[1.03] tracking-[-0.02em] text-[var(--color-fg-bone)]"
-                                style={{ fontFamily: "var(--font-playfair)" }}
-                            >
-                                Dr Ahmed Altan
-                            </h2>
-
-                            <p className="mt-4 text-[clamp(1rem,1.16vw,1.18rem)] text-[var(--color-muted)] leading-[1.62]">
-                                Our clinic is a specialist hair transplant clinic located in Turkiye, distinguished by an individual approach to each patient.
-                            </p>
-
-                            <div className="mt-8 space-y-4 md:space-y-5">
-                                {STORY_STEPS.map((paragraph, index) => {
-                                    const isActive = activeStep === index;
-                                    const isRevealed = activeStep >= index;
-
-                                    return (
-                                        <motion.div
-                                            key={`story-step-${index}`}
-                                            className="grid grid-cols-[auto_1fr] gap-3.5 items-start"
-                                            animate={{
-                                                opacity: isRevealed ? 1 : 0.36,
-                                                x: isActive ? 0 : 10,
-                                            }}
-                                            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                                        >
-                                            <span
-                                                className={`mt-1 inline-flex h-2.5 w-2.5 rounded-full border ${isActive
-                                                    ? "border-[var(--color-accent)] bg-[var(--color-accent)]"
-                                                    : "border-[var(--color-border-soft)] bg-transparent"
-                                                    }`}
-                                            />
-                                            <div>
-                                                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--color-muted)] mb-1">
-                                                    {String(index + 1).padStart(2, "0")}
-                                                </p>
-                                                <p className="text-[clamp(1.02rem,1.1vw,1.2rem)] text-[var(--color-fg-bone)]/88 leading-[1.56]">
-                                                    {paragraph}
-                                                </p>
-                                            </div>
-                                        </motion.div>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="mt-7 h-[2px] w-full max-w-[620px] overflow-hidden rounded-full bg-white/12">
-                                <motion.div
-                                    className="h-full bg-gradient-to-r from-[var(--color-accent)] via-white/85 to-white"
-                                    style={{
-                                        scaleX: timelineProgress,
-                                        transformOrigin: "0% 50%",
-                                    }}
-                                />
-                            </div>
-                            </motion.div>
-                        </div>
-                    </div>
-                </div>
+                    <p className="mt-2 text-[0.84rem] leading-[1.56] text-[var(--color-ink)]/[0.78] md:text-[0.88rem]">
+                      {highlight}
+                    </p>
+                  </article>
+                ))}
+              </div>
             </div>
-        </section>
-    );
+
+            {/* ── right: portrait ── */}
+            <div className="order-1 flex min-h-0 items-center justify-center lg:order-2 lg:justify-end">
+              <div className="panel-surface relative w-full max-w-[380px] p-2 lg:max-w-[420px]">
+                <div
+                  className="relative aspect-[480/793] w-full overflow-hidden rounded-[28px]"
+                  style={{
+                    background:
+                      "radial-gradient(circle_at_18%_18%,rgba(109,129,104,0.2),transparent_32%),radial-gradient(circle_at_82%_78%,rgba(255,255,255,0.06),transparent_28%),linear-gradient(180deg,rgba(16,23,18,0.92),rgba(10,15,11,1))",
+                  }}
+                >
+                  <div
+                    className="absolute inset-0 z-[1]"
+                    style={{
+                      background:
+                        "radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,255,255,0.12), transparent 60%)",
+                    }}
+                  />
+
+                  <Image
+                    src={doctor.image}
+                    alt={`${doctor.name} portrait`}
+                    fill
+                    sizes="(max-width: 767px) 80vw, (max-width: 1023px) 50vw, 38vw"
+                    className="relative z-[2] object-contain object-bottom"
+                    priority
+                  />
+
+                  <div
+                    className="absolute inset-x-0 bottom-0 z-[3] h-[80px]"
+                    style={{
+                      background: "linear-gradient(to top, rgba(0,0,0,0.34), transparent)",
+                    }}
+                  />
+
+                  <div className="absolute inset-x-5 bottom-4 z-[4] flex items-center justify-between gap-3 text-[9px] uppercase tracking-[0.28em] text-[var(--color-hero-muted)] md:inset-x-6 md:bottom-5">
+                    <span>{doctor.noteLeft}</span>
+                    <span>{doctor.noteRight}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

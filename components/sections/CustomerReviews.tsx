@@ -1,163 +1,206 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { useScroll, useTransform, motion, useSpring } from "framer-motion";
+import { useLenis } from "@/components/layout/SmoothScrollProvider";
+import BodySectionVeil from "@/components/ui/BodySectionVeil";
+import { REVIEW_STORIES } from "@/lib/siteContent";
 
-const REVIEWS = [
-    {
-        id: 1,
-        author: "Marcus T.",
-        location: "London, UK",
-        rating: 5,
-        text: "The Sapphire Micro-FUE procedure was completely painless. Six months in, and the density is incredible. Dr. Altan's team is truly world-class.",
-        image: "/images/projects/sculpture.svg" // Placeholder avatar
-    },
-    {
-        id: 2,
-        author: "David L.",
-        location: "New York, USA",
-        rating: 5,
-        text: "I was hesitant about traveling for a hair transplant, but the natural results speak for themselves. The hairline design is a work of art.",
-        image: "/images/projects/vogue.svg" // Placeholder avatar
-    },
-    {
-        id: 3,
-        author: "Omar S.",
-        location: "Dubai, UAE",
-        rating: 5,
-        text: "Professionalism at its finest. They didn't just transplant hair; they restored my confidence. The healing process was remarkably fast.",
-        image: "/images/projects/noir.svg" // Placeholder avatar
-    }
-];
+const initialsFromName = (name: string) =>
+  name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2);
 
 export default function CustomerReviews() {
-    const containerRef = useRef<HTMLElement>(null);
-    const trackRef = useRef<HTMLDivElement>(null);
-    const [isMobile, setIsMobile] = useState(false);
-    const [mobileTrackShift, setMobileTrackShift] = useState(0);
+  const { sectionSubsteps } = useLenis();
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const [trackPositions, setTrackPositions] = useState<number[]>([0]);
+  const activeIndex = sectionSubsteps.stories ?? 0;
+  const activeTrackX = trackPositions[activeIndex] ?? trackPositions[0] ?? 0;
 
-    useEffect(() => {
-        const update = () => {
-            const mobile = window.matchMedia("(max-width: 767px)").matches;
-            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            setIsMobile(mobile || reducedMotion);
-        };
-        update();
-        window.addEventListener("resize", update);
-        return () => window.removeEventListener("resize", update);
-    }, []);
+  useEffect(() => {
+    const measure = () => {
+      const viewport = viewportRef.current;
+      const track = trackRef.current;
+      if (!viewport || !track) return;
 
-    useEffect(() => {
-        if (!isMobile) return;
+      const cards = Array.from(track.children) as HTMLElement[];
+      if (cards.length === 0) return;
 
-        const measure = () => {
-            const track = trackRef.current;
-            if (!track) return;
-            const viewportWidth = track.parentElement?.clientWidth ?? window.innerWidth;
-            const shift = Math.max(0, track.scrollWidth - viewportWidth);
-            setMobileTrackShift(shift);
-        };
+      const viewportWidth = viewport.clientWidth;
+      const trackWidth = track.scrollWidth;
+      const railInset =
+        viewportWidth >= 1440
+          ? 30
+          : viewportWidth >= 1024
+            ? 22
+            : viewportWidth >= 768
+              ? 18
+              : 12;
+      const minTrackX = viewportWidth - railInset - trackWidth;
+      const maxTrackX = railInset;
+      const nextPositions = cards.map((card) => {
+        const alignedLeft = railInset - card.offsetLeft;
+        return Math.max(minTrackX, Math.min(maxTrackX, alignedLeft));
+      });
 
-        measure();
-        window.addEventListener("resize", measure);
-        return () => window.removeEventListener("resize", measure);
-    }, [isMobile]);
+      setTrackPositions(nextPositions);
+    };
 
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start end", "end start"]
-    });
+    measure();
 
-    const springProgress = useSpring(scrollYProgress, {
-        stiffness: 100,
-        damping: 30,
-        restDelta: 0.001
-    });
+    const observer = new ResizeObserver(measure);
+    if (viewportRef.current) observer.observe(viewportRef.current);
+    if (trackRef.current) observer.observe(trackRef.current);
 
-    // Horizontal scroll calculation
-    const cardsXMobile = useTransform(scrollYProgress, [0.14, 1], [0, -mobileTrackShift]);
-    const cardsXDesktop = useTransform(springProgress, [0.2, 0.8], ["10%", "-60%"]);
-    const cardsX = isMobile ? cardsXMobile : cardsXDesktop;
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
 
-    // Header fade in
-    const headerOpacity = useTransform(springProgress, [0.1, 0.3], [0, 1]);
-    const headerY = useTransform(springProgress, [0.1, 0.3], [50, 0]);
+  return (
+    <section
+      id="stories"
+      data-nav-section
+      data-header-tone="dark"
+      className="body-section relative min-h-screen h-svh overflow-hidden"
+    >
+      <BodySectionVeil variant="body" />
 
-    return (
-            <section
-            ref={containerRef}
-            className={`relative bg-[var(--color-bg)] w-full ${isMobile ? "h-[280vh]" : "h-[250vh]"}`}
-        >
-            <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-center">
-                {/* Background ambient glow */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[var(--color-accent)] opacity-[0.03] blur-[120px] rounded-full pointer-events-none" />
+      <div className="site-shell relative flex h-full flex-col pt-[calc(var(--header-height)+28px)] pb-6 md:pt-[calc(var(--header-height)+34px)] md:pb-8">
+        {/* ── header area ── */}
+        <div className="section-shell shrink-0">
+          <p className="section-label">
+            <span className="section-label-line" />
+            Patient Stories
+          </p>
+          <div className="mt-5 flex items-end justify-between gap-5">
+            <h2 className="max-w-[15ch] font-[var(--font-manrope)] text-[clamp(2.5rem,4.6vw,4.8rem)] leading-[0.94] tracking-[-0.06em] text-[var(--color-ink)] lg:max-w-[16ch]">
+              Life-changing, told in a quieter register.
+            </h2>
+          </div>
+        </div>
 
-                <div
-                    className="w-full max-w-[760px] mx-auto mobile-inline-gutter md:pl-16 md:pr-0 lg:pl-24 mb-12 md:mb-24"
-                    style={isMobile ? { paddingLeft: 15, paddingRight: 15 } : undefined}
-                >
-                    <motion.div
-                        style={{ opacity: headerOpacity, y: headerY }}
-                        className="max-w-[100rem] mx-auto text-center md:text-left"
+        {/* ── card rail — vertically centered in remaining space ── */}
+        <div className="relative flex flex-1 items-center min-h-0">
+          <div
+            ref={viewportRef}
+            className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden px-3 md:px-5 lg:px-6"
+          >
+            <motion.div
+              ref={trackRef}
+              className="flex items-stretch gap-5 will-change-transform md:gap-6 lg:gap-7"
+              animate={{ x: activeTrackX }}
+              transition={
+                prefersReducedMotion
+                  ? { duration: 0 }
+                  : { type: "spring", stiffness: 100, damping: 22, mass: 0.85 }
+              }
+            >
+              {REVIEW_STORIES.map((review, index) => {
+                const isActive = index === activeIndex;
+
+                return (
+                  <article
+                    key={review.id}
+                    className="group relative shrink-0 overflow-hidden transition-all duration-500"
+                    style={{
+                      width: "min(86vw, 520px)",
+                      opacity: isActive ? 1 : 0.5,
+                      transform: isActive ? "scale(1)" : "scale(0.97)",
+                    }}
+                  >
+                    {/* card */}
+                    <div
+                      className={`relative flex flex-col justify-between rounded-2xl border px-7 py-6 transition-[background-color,border-color] duration-500 md:rounded-3xl md:px-9 md:py-8 ${
+                        isActive
+                          ? "border-[rgba(109,129,104,0.32)] bg-[rgba(255,255,255,0.05)]"
+                          : "border-[var(--color-soft-line)] bg-[rgba(255,255,255,0.02)]"
+                      }`}
                     >
-                        <div className="inline-flex items-center gap-2.5 mb-5 rounded-full border border-[var(--color-border-soft)] bg-[var(--color-glass)] px-4 py-2 backdrop-blur-md mx-auto md:mx-0">
-                            <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
-                            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-muted)]">
-                                Patient Stories
-                            </p>
-                        </div>
-                        <h2
-                            className="text-[clamp(2rem,9vw,4.5rem)] font-medium leading-[1.04] text-[var(--color-fg-bone)] tracking-[-0.02em] max-w-[20ch] mx-auto md:mx-0"
-                            style={{ fontFamily: "var(--font-playfair)" }}
-                        >
-                            Life-Changing
-                            <span className="block text-white/50 italic">Transformations</span>
-                        </h2>
-                    </motion.div>
-                </div>
+                      {/* quote mark */}
+                      <div className="pointer-events-none absolute top-5 right-6 font-[var(--font-manrope)] text-[5rem] leading-none tracking-tighter text-white/[0.04] md:top-4 md:right-8 md:text-[7rem]">
+                        &ldquo;
+                      </div>
 
-                <div className="relative w-full">
-                    <motion.div
-                        ref={trackRef}
-                        className="flex gap-6 md:gap-12 mobile-inline-gutter md:px-16 lg:px-24 w-max"
-                        style={isMobile ? { paddingLeft: 15, paddingRight: 15, x: cardsX } : { x: cardsX }}
-                    >
-                        {REVIEWS.map((review) => (
-                            <div
-                                key={review.id}
-                                className="w-[88vw] sm:w-[82vw] md:w-[600px] lg:w-[700px] min-h-[400px] shrink-0 rounded-[40px] border border-[var(--color-border-soft)] bg-[#111814]/80 backdrop-blur-xl relative overflow-hidden group flex flex-col justify-center"
-                            >
-                                {/* Hover Gradient effect */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-accent)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-
-                                <div className="relative z-10 w-full h-full box-border px-8 py-12 md:px-14 md:py-16 lg:px-20 lg:py-20 flex flex-col justify-center gap-8 md:gap-10 text-center md:text-left">
-                                    <div className="flex gap-1 justify-center md:justify-start">
-                                        {[...Array(review.rating)].map((_, i) => (
-                                            <svg key={i} className="w-6 h-6 text-[var(--color-accent)]" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                        ))}
-                                    </div>
-                                    <p className="text-2xl md:text-3xl font-medium text-[var(--color-fg-bone)] leading-relaxed tracking-tight">
-                                        &ldquo;{review.text}&rdquo;
-                                    </p>
-
-                                    <div className="flex items-center gap-5 pt-4 justify-center md:justify-start">
-                                        <div className="w-16 h-16 rounded-full overflow-hidden bg-[var(--color-bg-elevated)] border border-[var(--color-border-soft)] shrink-0 flex items-center justify-center">
-                                            {/* Empty placeholder as requested */}
-                                        </div>
-                                        <div>
-                                            <h4 className="text-xl font-medium text-white mb-2">{review.author}</h4>
-                                            <p className="text-base text-[var(--color-muted)]">{review.location}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                      {/* stars */}
+                      <div className="flex gap-1 text-[var(--color-accent-strong)]">
+                        {[...Array(review.rating)].map((_, ratingIndex) => (
+                          <span
+                            key={`${review.id}-star-${ratingIndex}`}
+                            className="text-[0.9rem] leading-none md:text-[1rem]"
+                          >
+                            ★
+                          </span>
                         ))}
-                        {isMobile ? <div className="shrink-0 w-[22vw]" aria-hidden="true" /> : null}
-                    </motion.div>
-                </div>
-            </div>
-        </section>
-    );
+                      </div>
+
+                      {/* review text */}
+                      <p className="mt-5 text-[clamp(0.95rem,1.12vw,1.18rem)] leading-[1.65] tracking-[-0.01em] text-[var(--color-ink)] md:mt-6">
+                        &ldquo;{review.text}&rdquo;
+                      </p>
+
+                      {/* divider */}
+                      <div className="mt-6 h-px bg-white/[0.08] md:mt-7" />
+
+                      {/* author */}
+                      <div className="mt-4 flex items-center gap-3.5 md:mt-5">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] font-[var(--font-manrope)] text-[0.72rem] uppercase tracking-[0.2em] text-[var(--color-accent-strong)] md:h-11 md:w-11 md:text-[0.78rem]">
+                          {initialsFromName(review.author)}
+                        </div>
+                        <div>
+                          <h3 className="font-[var(--font-manrope)] text-[0.92rem] font-medium text-[var(--color-ink)] md:text-[1rem]">
+                            {review.author}
+                          </h3>
+                          <p className="mt-0.5 text-[0.82rem] text-[var(--color-muted-ink)] md:text-[0.88rem]">
+                            {review.location}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* ── bottom bar: pagination + counter ── */}
+        <div className="section-shell mt-auto flex shrink-0 items-center justify-between pt-5 md:pt-6">
+          {/* dot pagination */}
+          <div className="flex items-center gap-2.5">
+            {REVIEW_STORIES.map((_, idx) => (
+              <span
+                key={`dot-${idx}`}
+                className="block rounded-full transition-all duration-400"
+                style={{
+                  width: idx === activeIndex ? 24 : 6,
+                  height: 6,
+                  backgroundColor:
+                    idx === activeIndex
+                      ? "var(--color-accent-strong)"
+                      : "rgba(255,255,255,0.15)",
+                }}
+              />
+            ))}
+          </div>
+
+          {/* counter */}
+          <div className="text-right">
+            <p className="font-[var(--font-manrope)] text-[clamp(1.4rem,2.4vw,2rem)] leading-none tracking-[-0.07em] text-[var(--color-soft-line-strong)]">
+              {String(activeIndex + 1).padStart(2, "0")}
+              <span className="mx-1.5 text-[0.7em] text-[var(--color-muted-ink)]">/</span>
+              {String(REVIEW_STORIES.length).padStart(2, "0")}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
