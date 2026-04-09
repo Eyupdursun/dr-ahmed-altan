@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useLenis } from "@/components/layout/SmoothScrollProvider";
+import { useScrollNavigation } from "@/components/layout/SmoothScrollProvider";
 import BodySectionVeil from "@/components/ui/BodySectionVeil";
 import {
   TEAM_MEMBERS,
@@ -17,10 +17,8 @@ const EASE_STANDARD: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 function TeamCard({
   member,
-  index,
 }: {
   member: DoctorProfile;
-  index: number;
 }) {
   return (
     <article className="group flex items-center gap-4 rounded-[24px] border border-white/[0.06] bg-white/[0.02] p-5 transition-all duration-400 hover:border-[rgba(109,129,104,0.22)] hover:bg-white/[0.04] sm:min-h-[200px] md:gap-6 md:p-6 md:min-h-[260px] lg:gap-7 lg:p-7 lg:min-h-[340px]">
@@ -37,10 +35,14 @@ function TeamCard({
           alt={`${member.name} portrait`}
           fill
           sizes="200px"
-          className="object-contain object-bottom"
+          className="relative z-[1] object-contain object-bottom"
+          style={{
+            filter:
+              "sepia(0.16) saturate(0.84) hue-rotate(-8deg) brightness(0.95) contrast(1.03)",
+          }}
         />
         <div
-          className="absolute inset-x-0 bottom-0 h-[40px]"
+          className="absolute inset-x-0 bottom-0 z-[2] h-[40px]"
           style={{
             background: "linear-gradient(to top, rgba(0,0,0,0.4), transparent)",
           }}
@@ -66,7 +68,7 @@ function TeamCard({
 /* ── section ── */
 
 export default function TeamSection() {
-  const { sectionSubsteps, scrollToSection } = useLenis();
+  const { sectionSubsteps, scrollToSection } = useScrollNavigation();
   const prefersReducedMotion = useReducedMotion();
   const activeGroupIndex = sectionSubsteps.team ?? 0;
 
@@ -120,12 +122,8 @@ export default function TeamSection() {
                 transition={{ duration: 0.4, ease: EASE_STANDARD }}
                 className="grid gap-3 md:grid-cols-3 md:gap-4 lg:gap-5"
               >
-                {activeGroup.map((member, memberIndex) => (
-                  <TeamCard
-                    key={member.id}
-                    member={member}
-                    index={activeGroupIndex * TEAM_GROUP_SIZE + memberIndex}
-                  />
+                {activeGroup.map((member) => (
+                  <TeamCard key={member.id} member={member} />
                 ))}
               </motion.div>
             </AnimatePresence>

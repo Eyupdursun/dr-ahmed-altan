@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { OFFICES } from "@/lib/siteData";
 import { SOLUTION_CASES } from "@/lib/siteContent";
-import { useLenis } from "@/components/layout/SmoothScrollProvider";
+import { useScrollNavigation } from "@/components/layout/SmoothScrollProvider";
 
 const phoneHref = (phone: string) => `tel:${phone.replace(/\s+/g, "")}`;
 
@@ -13,7 +12,7 @@ const FOOTER_LINKS = [
 ];
 
 export default function ClinicFooter() {
-  const { scrollToSection } = useLenis();
+  const { scrollToSection } = useScrollNavigation();
 
   return (
     <footer
@@ -32,26 +31,7 @@ export default function ClinicFooter() {
       <div className="site-shell relative flex h-full flex-col pt-[calc(var(--header-height)+28px)] pb-6 md:pt-[calc(var(--header-height)+34px)] md:pb-8">
         {/* ── top: brand + tagline ── */}
         <div className="section-shell shrink-0">
-          <div className="flex items-start justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 overflow-hidden rounded-full border border-white/[0.12] bg-white/[0.04] md:h-11 md:w-11">
-                <Image
-                  src="/images/projects/ahmed-altan-logo-icon.png"
-                  alt="Dr. Ahmed Altan"
-                  fill
-                  className="object-contain object-center scale-[0.92]"
-                />
-              </div>
-              <div>
-                <p className="text-[8px] uppercase tracking-[0.34em] text-[var(--color-hero-muted)]">
-                  Showcase
-                </p>
-                <p className="mt-1 font-[var(--font-manrope)] text-[0.95rem] uppercase tracking-[0.24em] text-[var(--color-hero-fg)]">
-                  Dr.Altan
-                </p>
-              </div>
-            </div>
-
+          <div className="flex items-start justify-end gap-6">
             <button
               type="button"
               onClick={() => scrollToSection("intro")}

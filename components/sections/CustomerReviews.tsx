@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { useLenis } from "@/components/layout/SmoothScrollProvider";
+import { useScrollNavigation } from "@/components/layout/SmoothScrollProvider";
 import BodySectionVeil from "@/components/ui/BodySectionVeil";
 import { REVIEW_STORIES } from "@/lib/siteContent";
 
@@ -14,7 +14,7 @@ const initialsFromName = (name: string) =>
     .slice(0, 2);
 
 export default function CustomerReviews() {
-  const { sectionSubsteps } = useLenis();
+  const { sectionSubsteps } = useScrollNavigation();
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
@@ -109,7 +109,7 @@ export default function CustomerReviews() {
                 return (
                   <article
                     key={review.id}
-                    className="group relative shrink-0 overflow-hidden transition-all duration-500"
+                    className="group relative flex shrink-0 overflow-hidden transition-all duration-500"
                     style={{
                       width: "min(86vw, 520px)",
                       opacity: isActive ? 1 : 0.5,
@@ -118,7 +118,7 @@ export default function CustomerReviews() {
                   >
                     {/* card */}
                     <div
-                      className={`relative flex flex-col justify-between rounded-2xl border px-7 py-6 transition-[background-color,border-color] duration-500 md:rounded-3xl md:px-9 md:py-8 ${
+                      className={`relative flex h-full flex-1 flex-col justify-between rounded-2xl border px-7 py-6 transition-[background-color,border-color] duration-500 md:rounded-3xl md:px-9 md:py-8 ${
                         isActive
                           ? "border-[rgba(109,129,104,0.32)] bg-[rgba(255,255,255,0.05)]"
                           : "border-[var(--color-soft-line)] bg-[rgba(255,255,255,0.02)]"

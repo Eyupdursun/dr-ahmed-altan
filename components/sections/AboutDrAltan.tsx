@@ -27,7 +27,7 @@ export default function AboutDrAltan() {
 
         {/* ── main content — fills remaining space ── */}
         <div className="section-shell mt-3 flex flex-1 items-center min-h-0 md:mt-4">
-          <div className="grid w-full items-center gap-6 lg:grid-cols-[1fr_minmax(0,0.48fr)] lg:gap-10 xl:gap-14">
+          <div className="grid w-full items-center gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(28rem,32rem)] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(31rem,35rem)] xl:gap-14">
             {/* ── left: text ── */}
             <div className="order-2 flex flex-col lg:order-1">
               <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--color-accent-strong)]">
@@ -63,9 +63,9 @@ export default function AboutDrAltan() {
 
             {/* ── right: portrait ── */}
             <div className="order-1 flex min-h-0 items-center justify-center lg:order-2 lg:justify-end">
-              <div className="panel-surface relative w-full max-w-[380px] p-2 lg:max-w-[420px]">
+              <div className="panel-surface relative w-full p-2">
                 <div
-                  className="relative aspect-[480/793] w-full overflow-hidden rounded-[28px]"
+                  className="relative aspect-[4/5] w-full overflow-hidden rounded-[28px]"
                   style={{
                     background:
                       "radial-gradient(circle_at_18%_18%,rgba(109,129,104,0.2),transparent_32%),radial-gradient(circle_at_82%_78%,rgba(255,255,255,0.06),transparent_28%),linear-gradient(180deg,rgba(16,23,18,0.92),rgba(10,15,11,1))",
@@ -84,7 +84,12 @@ export default function AboutDrAltan() {
                     alt={`${doctor.name} portrait`}
                     fill
                     sizes="(max-width: 767px) 80vw, (max-width: 1023px) 50vw, 38vw"
-                    className="relative z-[2] object-contain object-bottom"
+                    className="relative z-[2] object-contain"
+                    style={{
+                      objectPosition: doctor.portraitPosition ?? "center bottom",
+                      filter:
+                        "sepia(0.18) saturate(0.82) hue-rotate(-10deg) brightness(0.94) contrast(1.04)",
+                    }}
                     priority
                   />
 

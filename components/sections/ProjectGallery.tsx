@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useLenis } from "@/components/layout/SmoothScrollProvider";
+import { useScrollNavigation } from "@/components/layout/SmoothScrollProvider";
 import BodySectionVeil from "@/components/ui/BodySectionVeil";
 import { SOLUTION_CASES, type SolutionCase } from "@/lib/siteContent";
 
@@ -27,7 +27,7 @@ function SolutionMedia({ project }: { project: SolutionCase }) {
 }
 
 export default function ProjectGallery() {
-  const { sectionSubsteps, scrollToSection } = useLenis();
+  const { sectionSubsteps, scrollToSection } = useScrollNavigation();
   const prefersReducedMotion = useReducedMotion();
   const activeIndex = sectionSubsteps.solutions ?? 0;
   const activeProject = SOLUTION_CASES[activeIndex] ?? SOLUTION_CASES[0];

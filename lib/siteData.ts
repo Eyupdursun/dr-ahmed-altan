@@ -11,6 +11,7 @@ export type Office = {
 export type MenuChildItem = {
   id: string;
   label: string;
+  meta?: string;
   targetId?: SiteSectionId;
   substep?: number;
 };
@@ -19,6 +20,7 @@ export type MenuItem = {
   id: string;
   label: string;
   index: string;
+  summary: string;
   targetId?: SiteSectionId;
   sectionIds: SiteSectionId[];
   children?: MenuChildItem[];
@@ -49,11 +51,14 @@ export const MENU_ITEMS: MenuItem[] = [
     id: "hair",
     label: "Hair",
     index: "01",
+    summary:
+      "Treatments arranged as quiet studies in design, graft discipline, and measured restoration.",
     targetId: "solutions",
     sectionIds: ["intro", "solutions", "stories", "faq"],
     children: SOLUTION_CASES.map((s, i) => ({
       id: s.id,
       label: s.title,
+      meta: `${s.category} / ${s.tag}`,
       targetId: "solutions" as SiteSectionId,
       substep: i,
     })),
@@ -62,17 +67,31 @@ export const MENU_ITEMS: MenuItem[] = [
     id: "about",
     label: "About",
     index: "02",
+    summary:
+      "The lead surgeon and supporting team behind planning, surgery, and patient recovery.",
     targetId: "doctor",
     sectionIds: ["doctor", "team"],
     children: [
-      { id: "about-doctor", label: "Dr. Ahmed Altan", targetId: "doctor" },
-      { id: "about-team", label: "Our Team", targetId: "team" },
+      {
+        id: "about-doctor",
+        label: "Dr. Ahmed Altan",
+        meta: "Lead surgeon / surgical direction",
+        targetId: "doctor",
+      },
+      {
+        id: "about-team",
+        label: "Our Team",
+        meta: "Clinical team / multidisciplinary support",
+        targetId: "team",
+      },
     ],
   },
   {
     id: "contact",
     label: "Contact",
     index: "03",
+    summary:
+      "Reach the Istanbul clinic or speak with the European offices before planning treatment.",
     targetId: "offices",
     sectionIds: ["accreditations", "offices"],
   },

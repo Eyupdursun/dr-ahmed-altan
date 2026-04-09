@@ -35,7 +35,7 @@ type NavigationState = {
   sectionSubsteps: Record<SiteSectionId, number>;
 };
 
-interface LenisContextValue {
+interface ScrollNavigationContextValue {
   activeSectionId: SiteSectionId;
   activeSectionIndex: number;
   isTransitioning: boolean;
@@ -71,7 +71,7 @@ const createInitialSubsteps = () =>
     SITE_SECTIONS.map((section) => [section.id, 0])
   ) as Record<SiteSectionId, number>;
 
-const LenisContext = createContext<LenisContextValue>({
+const ScrollNavigationContext = createContext<ScrollNavigationContextValue>({
   activeSectionId: SITE_SECTIONS[0].id,
   activeSectionIndex: 0,
   isTransitioning: false,
@@ -82,8 +82,8 @@ const LenisContext = createContext<LenisContextValue>({
   sectionSubsteps: createInitialSubsteps(),
 });
 
-export function useLenis() {
-  return useContext(LenisContext);
+export function useScrollNavigation() {
+  return useContext(ScrollNavigationContext);
 }
 
 /* ── smooth scroll helper (JS-driven, no Lenis) ── */
@@ -580,7 +580,7 @@ export default function SmoothScrollProvider({
 
 
   return (
-    <LenisContext.Provider
+    <ScrollNavigationContext.Provider
       value={{
         activeSectionId: SITE_SECTIONS[navigationState.activeSectionIndex].id,
         activeSectionIndex: navigationState.activeSectionIndex,
@@ -593,6 +593,6 @@ export default function SmoothScrollProvider({
       }}
     >
       {children}
-    </LenisContext.Provider>
+    </ScrollNavigationContext.Provider>
   );
 }
