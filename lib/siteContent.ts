@@ -3,6 +3,7 @@ export type SiteSectionId =
   | "doctor"
   | "team"
   | "solutions"
+  | "results"
   | "stories"
   | "faq"
   | "accreditations"
@@ -41,6 +42,17 @@ export type ReviewStory = {
   text: string;
 };
 
+export type BeforeAfterCase = {
+  id: string;
+  title: string;
+  summary: string;
+  timeline: string;
+  technique: string;
+  focusArea: string;
+  beforeImage?: string;
+  afterImage?: string;
+};
+
 export const DOCTOR_PROFILES: DoctorProfile[] = [
   {
     id: "ahmed-altan",
@@ -54,7 +66,7 @@ export const DOCTOR_PROFILES: DoctorProfile[] = [
       "Builds natural density strategies around facial structure, donor discipline, and long-term growth.",
       "Frames the clinic's standard for surgical restraint, recovery pacing, and visual credibility.",
     ],
-    image: "/images/projects/ahmed-altan.png",
+    image: "/images/projects/ahmed-altan.webp",
     noteLeft: "Chief Surgeon",
     noteRight: "Hairline Direction",
     accent: "#6d8168",
@@ -73,7 +85,7 @@ export const DOCTOR_PROFILES: DoctorProfile[] = [
       "Keeps the patient journey structured from planning through confirmation.",
       "Provides a calm, responsive point of contact before treatment begins.",
     ],
-    image: "/images/projects/leyla-2.png",
+    image: "/images/projects/leyla-2.webp",
     noteLeft: "Patient Advisor",
     noteRight: "Consultation Flow",
     accent: "#927c67",
@@ -92,7 +104,7 @@ export const DOCTOR_PROFILES: DoctorProfile[] = [
       "Helps preserve a calm operating rhythm during longer procedures.",
       "Contributes to detail-focused technical support across the session.",
     ],
-    image: "/images/projects/asli.png",
+    image: "/images/projects/asli.webp",
     noteLeft: "Technician",
     noteRight: "Graft Handling",
     accent: "#51644c",
@@ -111,7 +123,7 @@ export const DOCTOR_PROFILES: DoctorProfile[] = [
       "Maintains close attention to consistency during extended procedures.",
       "Adds measured technical support where timing and handling matter most.",
     ],
-    image: "/images/projects/fidan.png",
+    image: "/images/projects/fidan.webp",
     noteLeft: "Technician",
     noteRight: "Procedure Support",
     accent: "#8b7a6b",
@@ -130,7 +142,7 @@ export const DOCTOR_PROFILES: DoctorProfile[] = [
       "Helps maintain precise handling standards during the procedure.",
       "Contributes to a steady, low-friction clinical rhythm throughout the day.",
     ],
-    image: "/images/projects/elanur.png",
+    image: "/images/projects/elanur.webp",
     noteLeft: "Technician",
     noteRight: "Clinical Flow",
     accent: "#5a7d8c",
@@ -149,7 +161,7 @@ export const DOCTOR_PROFILES: DoctorProfile[] = [
       "Works with close attention to handling standards and room readiness.",
       "Helps preserve a calm, composed operating environment.",
     ],
-    image: "/images/projects/yesim.png",
+    image: "/images/projects/yesim.webp",
     noteLeft: "Technician",
     noteRight: "Room Readiness",
     accent: "#7b8e72",
@@ -168,7 +180,7 @@ export const DOCTOR_PROFILES: DoctorProfile[] = [
       "Helps sustain technical consistency throughout the operating day.",
       "Adds reliable support where precision and calm execution are needed.",
     ],
-    image: "/images/projects/kubra.png",
+    image: "/images/projects/kubra.webp",
     noteLeft: "Technician",
     noteRight: "Technical Support",
     accent: "#6b7b5a",
@@ -187,7 +199,7 @@ export const DOCTOR_PROFILES: DoctorProfile[] = [
       "Adds steady in-room assistance during longer operating sessions.",
       "Contributes to a controlled and dependable clinical rhythm.",
     ],
-    image: "/images/projects/sibel.png",
+    image: "/images/projects/sibel.webp",
     noteLeft: "Technician",
     noteRight: "Treatment Support",
     accent: "#8c6b7b",
@@ -206,7 +218,7 @@ export const DOCTOR_PROFILES: DoctorProfile[] = [
       "Coordinates follow-up conversations for patients comparing timelines and routes.",
       "Helps maintain a responsive, well-structured pre-treatment process.",
     ],
-    image: "/images/projects/dominika.png",
+    image: "/images/projects/dominika.webp",
     noteLeft: "Sales Manager",
     noteRight: "Enquiry Support",
     accent: "#5c6b8c",
@@ -225,7 +237,7 @@ export const DOCTOR_PROFILES: DoctorProfile[] = [
       "Maintains oversight on the team rhythm that supports consistent care delivery.",
       "Acts as a central point in keeping medical operations structured and calm.",
     ],
-    image: "/images/projects/busra.png",
+    image: "/images/projects/busra.webp",
     noteLeft: "Medical Team",
     noteRight: "Clinical Coordination",
     accent: "#7a6b5c",
@@ -245,50 +257,50 @@ export const SOLUTION_CASES: SolutionCase[] = [
     title: "Hair Transplant",
     category: "Sapphire Micro-FUE",
     tag: "Signature",
+    image: "/images/projects/hair-transplant-1.webp",
+    imageAlt: "Hair transplant procedure detail",
     description:
       "Dr. Ahmed Altan's Sapphire Micro-FUE technique combines 0.7 mm precision punches with sapphire-tipped blades. Cleaner extraction, sharper channels, faster healing — a calmer procedure with denser, more natural results.",
-    image: "/images/projects/hair-transplant.jpg",
-    imageAlt: "Sapphire Micro-FUE hair transplant procedure",
   },
   {
     id: "reconstruction",
     title: "Reconstruction",
     category: "Corrective",
     tag: "Repair",
+    image: "/images/projects/reconstruction.webp",
+    imageAlt: "Hair reconstruction procedure detail",
     description:
       "Revision surgery for patients with previous unsuccessful attempts. Scar softening, density rebalancing, and careful redistribution to restore a natural, credible appearance.",
-    image: "/images/projects/reconstruction.jpg",
-    imageAlt: "Hair reconstruction and repair surgery",
   },
   {
     id: "hairline-design",
     title: "Hairline Design",
     category: "Artistry",
     tag: "Precision",
+    image: "/images/projects/hair-design.webp",
+    imageAlt: "Hairline design planning detail",
     description:
       "Every hairline is mapped to facial structure, bone geometry, and natural growth direction. The goal is a result that looks undetectable at any distance — architecture, not decoration.",
-    image: "/images/projects/hairline-design.jpg",
-    imageAlt: "Custom hairline design and planning",
   },
   {
     id: "beard-transplant",
     title: "Beard Transplant",
     category: "Facial",
     tag: "Artistry",
+    image: "/images/projects/beard-transplant.webp",
+    imageAlt: "Beard transplant procedure detail",
     description:
       "Follicles are taken from the donor area and implanted to shape a fuller beard or quietly correct sparse facial zones. Angle, direction, and density are calibrated to stay discreet.",
-    image: "/images/projects/beard-transplant.jpg",
-    imageAlt: "Beard hair transplant procedure",
   },
   {
     id: "medical-treatment",
     title: "Medical Treatment",
     category: "Regenerative",
     tag: "Healing",
+    image: "/images/projects/medical-treatment.webp",
+    imageAlt: "Medical treatment and recovery detail",
     description:
       "PRP therapy and medical protocols that use the body's own growth factors to support recovery, strengthen existing follicles, and complement surgical restoration with a measured aftercare rhythm.",
-    image: "/images/projects/medical-treatment.jpg",
-    imageAlt: "PRP and medical hair treatment",
   },
 ];
 
@@ -337,18 +349,72 @@ export const REVIEW_STORIES: ReviewStory[] = [
   },
 ];
 
+export const BEFORE_AFTER_CASES: BeforeAfterCase[] = [
+  {
+    id: "hairline-density",
+    title: "Hairline restoration",
+    summary:
+      "Frontal hairline rebuilt with a soft, age-appropriate shape and full density across the temples.",
+    timeline: "12 months later",
+    technique: "Sapphire Micro-FUE",
+    focusArea: "Hairline + frontal density",
+    beforeImage: "/images/before-after/sac1-1.webp",
+    afterImage: "/images/before-after/sac-1-2.webp",
+  },
+  {
+    id: "crown-coverage",
+    title: "Crown coverage",
+    summary:
+      "Thinning crown restored with even density and natural directional flow that blends with existing hair.",
+    timeline: "10 months later",
+    technique: "Sapphire Micro-FUE",
+    focusArea: "Crown · vertex zone",
+    beforeImage: "/images/before-after/sac2-1.webp",
+    afterImage: "/images/before-after/sac2-2.webp",
+  },
+  {
+    id: "receding-temples",
+    title: "Receding temples",
+    summary:
+      "Temple corners reshaped to soften an aggressive recession while keeping the hairline natural.",
+    timeline: "9 months later",
+    technique: "DHI",
+    focusArea: "Temples + hairline",
+    beforeImage: "/images/before-after/sac3-1.webp",
+    afterImage: "/images/before-after/sac3-2.webp",
+  },
+  {
+    id: "beard-design",
+    title: "Beard design",
+    summary:
+      "Patchy beard filled in with carefully placed grafts following natural growth direction.",
+    timeline: "8 months later",
+    technique: "DHI",
+    focusArea: "Beard · cheek line",
+    beforeImage: "/images/before-after/sakal1.webp",
+    afterImage: "/images/before-after/sakal2.webp",
+  },
+];
+
+/** @deprecated kept for backwards compat — use BEFORE_AFTER_CASES */
+export const BEFORE_AFTER_CASE: BeforeAfterCase = BEFORE_AFTER_CASES[0];
+
+export type SectionScrollMode = "snap" | "free";
+
 export const SITE_SECTIONS = [
-  { id: "intro", substepCount: 1 },
-  { id: "doctor", substepCount: 1 },
-  { id: "team", substepCount: TEAM_GROUP_COUNT },
-  { id: "solutions", substepCount: SOLUTION_CASES.length },
-  { id: "stories", substepCount: REVIEW_STORIES.length },
-  { id: "faq", substepCount: 1 },
-  { id: "accreditations", substepCount: 1 },
-  { id: "offices", substepCount: 1 },
+  { id: "intro", substepCount: 1, scrollMode: "snap" as SectionScrollMode },
+  { id: "doctor", substepCount: 1, scrollMode: "snap" as SectionScrollMode },
+  { id: "team", substepCount: TEAM_GROUP_COUNT, scrollMode: "snap" as SectionScrollMode },
+  { id: "solutions", substepCount: SOLUTION_CASES.length, scrollMode: "snap" as SectionScrollMode },
+  { id: "results", substepCount: 1, scrollMode: "snap" as SectionScrollMode },
+  { id: "stories", substepCount: 1, scrollMode: "snap" as SectionScrollMode },
+  { id: "faq", substepCount: 1, scrollMode: "snap" as SectionScrollMode },
+  { id: "accreditations", substepCount: 1, scrollMode: "snap" as SectionScrollMode },
+  { id: "offices", substepCount: 1, scrollMode: "snap" as SectionScrollMode },
 ] as const satisfies ReadonlyArray<{
   id: SiteSectionId;
   substepCount: number;
+  scrollMode: SectionScrollMode;
 }>;
 
 export const SITE_SECTION_IDS = SITE_SECTIONS.map((section) => section.id);

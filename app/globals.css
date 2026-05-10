@@ -4,22 +4,28 @@
   --header-height: 58px;
   --page-gutter: 20px;
   --section-gap: clamp(28px, 3vw, 64px);
-  --color-hero-bg: #101712;
-  --color-hero-surface: #18211b;
-  --color-hero-fg: #edf3ea;
-  --color-hero-muted: #afbcaf;
-  --color-hero-line: rgba(255, 255, 255, 0.12);
-  --color-body: #101712;
-  --color-body-alt: #101712;
-  --color-ink: #edf3ea;
-  --color-muted-ink: #afbcaf;
-  --color-accent: #728b72;
-  --color-accent-strong: #96ae92;
-  --color-soft-line: rgba(255, 255, 255, 0.1);
-  --color-soft-line-strong: rgba(255, 255, 255, 0.2);
-  --color-panel: rgba(255, 255, 255, 0.03);
-  --color-panel-muted: rgba(255, 255, 255, 0.03);
-  --color-panel-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --color-cream: #f5f0e7;
+  --color-cream-light: #fbfaf5;
+  --color-cream-deep: #eee6d9;
+  --color-brand: #548564;
+  --color-brand-strong: #3f684c;
+  --color-text: #101712;
+  --color-hero-bg: var(--color-cream);
+  --color-hero-surface: var(--color-cream-light);
+  --color-hero-fg: var(--color-brand);
+  --color-hero-muted: rgba(84, 133, 100, 0.76);
+  --color-hero-line: rgba(84, 133, 100, 0.22);
+  --color-body: var(--color-cream);
+  --color-body-alt: var(--color-cream-light);
+  --color-ink: var(--color-brand);
+  --color-muted-ink: rgba(16, 23, 18, 0.66);
+  --color-accent: var(--color-brand);
+  --color-accent-strong: var(--color-brand-strong);
+  --color-soft-line: rgba(84, 133, 100, 0.2);
+  --color-soft-line-strong: rgba(84, 133, 100, 0.34);
+  --color-panel: rgba(255, 255, 255, 0.44);
+  --color-panel-muted: rgba(255, 255, 255, 0.34);
+  --color-panel-shadow: 0 18px 44px rgba(16, 23, 18, 0.055);
   --section-space: clamp(88px, 12vh, 152px);
   --panel-space: clamp(32px, 2.6vw, 48px);
   --panel-space-roomy: clamp(40px, 3vw, 56px);
@@ -40,19 +46,24 @@
 }
 
 html {
-  background: var(--color-hero-bg);
-  color: var(--color-hero-fg);
+  background: var(--color-body);
+  color: var(--color-text);
   overscroll-behavior: none;
 }
 
 body {
   margin: 0;
   font-family: var(--font-inter), "Inter", sans-serif;
-  background: var(--color-hero-bg);
-  color: var(--color-hero-fg);
+  background: var(--color-body);
+  color: var(--color-text);
   overflow-x: hidden;
   overscroll-behavior: none;
   text-rendering: optimizeLegibility;
+}
+
+img,
+video {
+  max-width: 100%;
 }
 
 button,
@@ -62,7 +73,7 @@ a {
 
 ::selection {
   background: var(--color-accent);
-  color: var(--color-hero-fg);
+  color: var(--color-cream-light);
 }
 
 
@@ -135,6 +146,51 @@ a {
   opacity: 0.45;
 }
 
+.shiny-text {
+  display: inline-block;
+  color: var(--color-accent);
+  background-image: linear-gradient(
+    110deg,
+    currentColor 0%,
+    currentColor 36%,
+    rgba(255, 255, 255, 0.95) 50%,
+    currentColor 64%,
+    currentColor 100%
+  );
+  background-size: 220% auto;
+  background-position: 150% center;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shiny-text-sweep 4.8s var(--ease-standard) infinite;
+}
+
+.shiny-text-disabled {
+  animation: none;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+@keyframes shiny-text-sweep {
+  0%,
+  18% {
+    background-position: 150% center;
+  }
+
+  54%,
+  100% {
+    background-position: -50% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shiny-text {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+
 .section-title {
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: clamp(2.2rem, 5vw, 5.4rem);
@@ -153,28 +209,18 @@ a {
 }
 
 .body-section {
-  background: var(--color-hero-bg);
-  color: var(--color-ink);
+  background: var(--color-body);
+  color: var(--color-text);
 }
 
 .body-section-alt {
-  background: var(--color-hero-bg);
-  color: var(--color-ink);
+  background: var(--color-body-alt);
+  color: var(--color-text);
 }
 
 .dark-section {
-  background: var(--color-hero-bg);
-  color: var(--color-hero-fg);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  html[data-cursor-ready="true"],
-  html[data-cursor-ready="true"] body,
-  html[data-cursor-ready="true"] a,
-  html[data-cursor-ready="true"] button,
-  html[data-cursor-ready="true"] [role="button"] {
-    cursor: none;
-  }
+  background: var(--color-body);
+  color: var(--color-text);
 }
 
 @media (min-width: 768px) {
@@ -197,5 +243,64 @@ a {
 
   .section-title {
     line-height: 1.02;
+  }
+}
+
+@media (max-width: 1024px), (pointer: coarse) {
+  html,
+  body {
+    overscroll-behavior-y: auto;
+  }
+
+  /* Force all snap/flow sections to natural document flow on mobile */
+  .mobile-flow-section,
+  section.mobile-flow-section,
+  [class*="mobile-flow-section"] {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 100svh;
+    overflow: visible !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    position: relative !important;
+  }
+
+  .mobile-flow-section > .site-shell,
+  .mobile-flow-section > .mobile-flow-shell {
+    height: auto !important;
+    min-height: 100svh;
+  }
+
+  .hero-flow-section,
+  section.hero-flow-section {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 100svh;
+    overflow: visible !important;
+  }
+
+  .mobile-flow-section .mobile-flow-content {
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  /* Ensure native touch scrolling works inside sections */
+  main,
+  main > section {
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-flow-section .section-label {
+    letter-spacing: 0.22em;
+  }
+
+  .mobile-flow-section .section-label-line {
+    width: 34px;
+  }
+
+  .mobile-flow-section .panel-surface,
+  .mobile-flow-section .panel-muted {
+    border-radius: 22px;
   }
 }

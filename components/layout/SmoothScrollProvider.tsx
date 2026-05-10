@@ -64,12 +64,21 @@ const SECTION_INDEX = Object.fromEntries(
 const STEP_THRESHOLD = 52;
 const TOUCH_THRESHOLD = 58;
 const SUBSTEP_TRANSITION_MS = 600;
+const SOLUTIONS_SUBSTEP_TRANSITION_MS = 520;
 const SECTION_TRANSITION_MS = 1100;
+const WHEEL_STEP_COOLDOWN_MS = 660;
+const SOLUTIONS_WHEEL_STEP_COOLDOWN_MS = 780;
+
+/* Boundary tolerance (px) for detecting "at the edge" of a free-scroll section */
+const BOUNDARY_TOLERANCE = 6;
 
 const createInitialSubsteps = () =>
   Object.fromEntries(
     SITE_SECTIONS.map((section) => [section.id, 0])
   ) as Record<SiteSectionId, number>;
+
+const isMobileScrollSurface = () =>
+  window.matchMedia("(max-width: 1024px), (pointer: coarse)").matches;
 
 const ScrollNavigationContext = createContext<ScrollNavigationContextValue>({
   activeSectionId: SITE_SECTIONS[0].id,
@@ -133,6 +142,29 @@ function smoothScrollTo(
   };
 }
 
+/* ── helpers ── */
+
+/**
+ * Detects if a free-scroll section is at its top or bottom boundary.
+ * Returns "top" | "bottom" | "inside".
+ */
+function detectFreeSectionBoundary(
+  sectionId: SiteSectionId
+): "top" | "bottom" | "inside" {
+  const el = document.getElementById(sectionId);
+  if (!el) return "inside";
+
+  const rect = el.getBoundingClientRect();
+
+  if (rect.top >= -BOUNDARY_TOLERANCE) {
+    return "top";
+  }
+  if (rect.bottom <= window.innerHeight + BOUNDARY_TOLERANCE) {
+    return "bottom";
+  }
+  return "inside";
+}
+
 /* ── provider ── */
 
 export default function SmoothScrollProvider({
@@ -150,6 +182,7 @@ export default function SmoothScrollProvider({
   const wheelResetTimerRef = useRef<number | null>(null);
   const transitionTimerRef = useRef<number | null>(null);
   const cancelScrollRef = useRef<(() => void) | null>(null);
+  const lastWheelStepTimeRef = useRef(0);
   const lastScrollYRef = useRef(0);
   const lastScrollTimeRef = useRef(0);
 
@@ -207,9 +240,13 @@ export default function SmoothScrollProvider({
     });
   }, [publishNavigationState]);
 
-  /* ── scroll tracking via rAF ── */
+  /* ── scroll tracking via rAF (desktop only — no consumers on mobile) ── */
 
   useEffect(() => {
+    if (window.matchMedia("(max-width: 1024px), (pointer: coarse)").matches) {
+      return;
+    }
+
     let rafId = 0;
     const tick = () => {
       const now = performance.now();
@@ -236,6 +273,49 @@ export default function SmoothScrollProvider({
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
   }, []);
+
+  /* ── sync active section for free-scroll sections ── */
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isTransitioningRef.current) return;
+
+      const currentIndex = activeSectionIndexRef.current;
+      const currentSection = SITE_SECTIONS[currentIndex];
+
+      if (currentSection.scrollMode !== "free") return;
+
+      /* While in a free-scroll section, check if user has scrolled past
+         its boundaries — if so, update the active section index. */
+      const el = document.getElementById(currentSection.id);
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+
+      // Scrolled past the bottom of the free section → move to next
+      if (rect.bottom < -BOUNDARY_TOLERANCE && currentIndex < SITE_SECTIONS.length - 1) {
+        publishNavigationState({
+          activeSectionIndex: currentIndex + 1,
+          isTransitioning: false,
+          lastDirection: 1,
+          sectionSubsteps: sectionSubstepsRef.current,
+        });
+      }
+
+      // Scrolled past the top of the free section → move to previous
+      if (rect.top > window.innerHeight + BOUNDARY_TOLERANCE && currentIndex > 0) {
+        publishNavigationState({
+          activeSectionIndex: currentIndex - 1,
+          isTransitioning: false,
+          lastDirection: -1,
+          sectionSubsteps: sectionSubstepsRef.current,
+        });
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [publishNavigationState]);
 
   /* ── public scrollTo (generic) ── */
 
@@ -289,6 +369,26 @@ export default function SmoothScrollProvider({
       cancelScrollRef.current?.();
       cancelScrollRef.current = null;
 
+      if (isMobileScrollSurface()) {
+        /* On mobile, never lock transitions — prevent any possibility of deadlock */
+        publishNavigationState({
+          activeSectionIndex: nextIndex,
+          isTransitioning: false,
+          lastDirection: nextDirection,
+          sectionSubsteps: nextSubsteps,
+        });
+
+        if (targetElement) {
+          /* Use scrollIntoView which works reliably with dynamic heights on mobile */
+          targetElement.scrollIntoView({
+            behavior: options.immediate ? "auto" : "smooth",
+            block: "start",
+          });
+        }
+
+        return;
+      }
+
       /* immediate (no animation) */
       if (options.immediate) {
         publishNavigationState({
@@ -307,6 +407,11 @@ export default function SmoothScrollProvider({
 
       /* substep transition (same section — no scroll needed) */
       if (isSameSection) {
+        const substepTransitionMs =
+          sectionId === "solutions"
+            ? SOLUTIONS_SUBSTEP_TRANSITION_MS
+            : SUBSTEP_TRANSITION_MS;
+
         publishNavigationState({
           activeSectionIndex: nextIndex,
           isTransitioning: true,
@@ -318,7 +423,7 @@ export default function SmoothScrollProvider({
         }
         transitionTimerRef.current = window.setTimeout(() => {
           releaseTransitionLock();
-        }, SUBSTEP_TRANSITION_MS);
+        }, substepTransitionMs);
         return;
       }
 
@@ -333,6 +438,14 @@ export default function SmoothScrollProvider({
       if (targetElement) {
         const targetOffset = targetElement.offsetTop;
 
+        // If navigating to a free-scroll section with boundary "end",
+        // scroll to the bottom of the section instead of the top
+        const isTargetFreeScroll = sectionConfig.scrollMode === "free";
+        const scrollTarget =
+          isTargetFreeScroll && options.boundary === "end"
+            ? targetOffset + targetElement.offsetHeight - window.innerHeight
+            : targetOffset;
+
         // Safety fallback timer
         if (transitionTimerRef.current !== null) {
           window.clearTimeout(transitionTimerRef.current);
@@ -342,7 +455,7 @@ export default function SmoothScrollProvider({
         }, SECTION_TRANSITION_MS + 300);
 
         cancelScrollRef.current = smoothScrollTo(
-          targetOffset,
+          scrollTarget,
           SECTION_TRANSITION_MS,
           () => {
             releaseTransitionLock();
@@ -376,6 +489,31 @@ export default function SmoothScrollProvider({
       const currentSection = SITE_SECTIONS[currentIndex];
       const currentSubstep = sectionSubstepsRef.current[currentSection.id];
 
+      /* ── free-scroll section: only allow cross-section transitions ── */
+      /* Note: boundary validation is already done by the caller (handleWheel/touch).
+         We skip the redundant detectFreeSectionBoundary check here because the
+         lerp scroll target may be ahead of the actual scroll position. */
+      if (currentSection.scrollMode === "free") {
+        if (direction === 1) {
+          const nextSection = SITE_SECTIONS[currentIndex + 1];
+          if (nextSection) {
+            scrollToSection(nextSection.id, { boundary: "start", direction: 1 });
+          }
+          return;
+        }
+
+        if (direction === -1) {
+          const previousSection = SITE_SECTIONS[currentIndex - 1];
+          if (previousSection) {
+            scrollToSection(previousSection.id, { boundary: "end", direction: -1 });
+          }
+          return;
+        }
+
+        return;
+      }
+
+      /* ── snap-scroll section (existing behavior) ── */
       if (direction === 1) {
         if (currentSubstep < currentSection.substepCount - 1) {
           scrollToSection(currentSection.id, {
@@ -432,16 +570,30 @@ export default function SmoothScrollProvider({
       scrollToSection(SITE_SECTIONS[closest.index].id, { immediate: true });
     };
 
-    syncToNearestSection();
+    const isMobile = window.matchMedia(
+      "(max-width: 1024px), (pointer: coarse)"
+    ).matches;
+
+    if (!isMobile) {
+      syncToNearestSection();
+    }
 
     const handleResize = () => {
+      if (
+        window.matchMedia("(max-width: 1024px), (pointer: coarse)").matches
+      ) {
+        return;
+      }
       window.requestAnimationFrame(() => {
-        scrollToSection(SITE_SECTIONS[activeSectionIndexRef.current].id, {
+        const currentSection = SITE_SECTIONS[activeSectionIndexRef.current];
+
+        // For free-scroll sections, don't force-scroll on resize
+        if (currentSection.scrollMode === "free") return;
+
+        scrollToSection(currentSection.id, {
           immediate: true,
           substep:
-            sectionSubstepsRef.current[
-              SITE_SECTIONS[activeSectionIndexRef.current].id
-            ],
+            sectionSubstepsRef.current[currentSection.id],
         });
       });
     };
@@ -450,9 +602,13 @@ export default function SmoothScrollProvider({
     return () => window.removeEventListener("resize", handleResize);
   }, [publishNavigationState, resolveSectionElement, scrollToSection]);
 
-  /* ── input handling (wheel / touch / keyboard) ── */
+  /* ── input handling (wheel / touch / keyboard) — desktop only ── */
 
   useEffect(() => {
+    if (window.matchMedia("(max-width: 1024px), (pointer: coarse)").matches) {
+      return;
+    }
+
     const scheduleWheelReset = () => {
       if (wheelResetTimerRef.current !== null) {
         window.clearTimeout(wheelResetTimerRef.current);
@@ -467,9 +623,56 @@ export default function SmoothScrollProvider({
       if (shouldIgnoreGestures()) return;
       if (Math.abs(event.deltaY) < Math.abs(event.deltaX)) return;
 
+      const currentIndex = activeSectionIndexRef.current;
+      const currentSection = SITE_SECTIONS[currentIndex];
+
+      /* ── free-scroll mode: native section scroll, snap only at boundaries ── */
+      if (currentSection.scrollMode === "free") {
+        if (isTransitioningRef.current) return;
+
+        const direction: 1 | -1 = event.deltaY > 0 ? 1 : -1;
+        const boundary = detectFreeSectionBoundary(currentSection.id);
+
+        if (direction === -1 && boundary === "top") {
+          event.preventDefault();
+          wheelAccumulatorRef.current += event.deltaY;
+          scheduleWheelReset();
+
+          if (Math.abs(wheelAccumulatorRef.current) < STEP_THRESHOLD) return;
+          clearWheelAccumulator();
+          stepSections(-1);
+          return;
+        }
+
+        if (direction === 1 && boundary === "bottom") {
+          event.preventDefault();
+          wheelAccumulatorRef.current += event.deltaY;
+          scheduleWheelReset();
+
+          if (Math.abs(wheelAccumulatorRef.current) < STEP_THRESHOLD) return;
+          clearWheelAccumulator();
+          stepSections(1);
+          return;
+        }
+
+        clearWheelAccumulator();
+        return;
+      }
+
+      /* ── snap-scroll mode (existing behavior) ── */
       event.preventDefault();
 
       if (isTransitioningRef.current) return;
+
+      const now = performance.now();
+      const wheelCooldown =
+        currentSection.id === "solutions"
+          ? SOLUTIONS_WHEEL_STEP_COOLDOWN_MS
+          : WHEEL_STEP_COOLDOWN_MS;
+      if (now - lastWheelStepTimeRef.current < wheelCooldown) {
+        clearWheelAccumulator();
+        return;
+      }
 
       if (wheelAccumulatorRef.current !== 0) {
         const previousDirection = Math.sign(wheelAccumulatorRef.current);
@@ -486,6 +689,7 @@ export default function SmoothScrollProvider({
 
       const direction: 1 | -1 = wheelAccumulatorRef.current > 0 ? 1 : -1;
       clearWheelAccumulator();
+      lastWheelStepTimeRef.current = now;
       stepSections(direction);
     };
 
@@ -497,6 +701,35 @@ export default function SmoothScrollProvider({
     const handleTouchMove = (event: TouchEvent) => {
       if (shouldIgnoreGestures()) return;
       if (touchStartYRef.current === null) return;
+
+      const currentIndex = activeSectionIndexRef.current;
+      const currentSection = SITE_SECTIONS[currentIndex];
+
+      // Free-scroll sections: only prevent default at boundaries
+      if (currentSection.scrollMode === "free") {
+        if (isTransitioningRef.current) {
+          event.preventDefault();
+          return;
+        }
+
+        const currentY = event.touches[0]?.clientY ?? touchStartYRef.current;
+        const delta = touchStartYRef.current - currentY;
+        const direction: 1 | -1 = delta > 0 ? 1 : -1;
+        const boundary = detectFreeSectionBoundary(currentSection.id);
+
+        if (
+          (direction === -1 && boundary === "top") ||
+          (direction === 1 && boundary === "bottom")
+        ) {
+          if (Math.abs(delta) > 6) {
+            event.preventDefault();
+          }
+        }
+        // Inside → let native touch scroll happen
+        return;
+      }
+
+      // Snap sections: always prevent default on sufficient movement
       const currentY = event.touches[0]?.clientY ?? touchStartYRef.current;
       if (Math.abs(touchStartYRef.current - currentY) > 6) {
         event.preventDefault();
@@ -519,6 +752,25 @@ export default function SmoothScrollProvider({
 
       const delta = startY - endY;
       if (Math.abs(delta) < TOUCH_THRESHOLD) return;
+
+      const currentIndex = activeSectionIndexRef.current;
+      const currentSection = SITE_SECTIONS[currentIndex];
+
+      // Free-scroll: only trigger section transitions at boundaries
+      if (currentSection.scrollMode === "free") {
+        const boundary = detectFreeSectionBoundary(currentSection.id);
+        const direction: 1 | -1 = delta > 0 ? 1 : -1;
+
+        if (
+          (direction === -1 && boundary === "top") ||
+          (direction === 1 && boundary === "bottom")
+        ) {
+          stepSections(direction);
+        }
+        return;
+      }
+
+      // Snap mode: existing behavior
       stepSections(delta > 0 ? 1 : -1);
     };
 
@@ -533,6 +785,37 @@ export default function SmoothScrollProvider({
 
       if (shouldIgnoreGestures()) return;
 
+      const currentIndex = activeSectionIndexRef.current;
+      const currentSection = SITE_SECTIONS[currentIndex];
+
+      // Free-scroll: only intercept at boundaries
+      if (currentSection.scrollMode === "free") {
+        const boundary = detectFreeSectionBoundary(currentSection.id);
+
+        if (
+          event.key === "ArrowDown" ||
+          event.key === "PageDown" ||
+          event.key === " "
+        ) {
+          if (boundary === "bottom") {
+            event.preventDefault();
+            stepSections(1);
+          }
+          // Else: let native scroll handle it
+          return;
+        }
+
+        if (event.key === "ArrowUp" || event.key === "PageUp") {
+          if (boundary === "top") {
+            event.preventDefault();
+            stepSections(-1);
+          }
+          return;
+        }
+        return;
+      }
+
+      // Snap mode: existing behavior
       if (
         event.key === "ArrowDown" ||
         event.key === "PageDown" ||

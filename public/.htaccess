@@ -1,0 +1,32 @@
+AddType image/webp .webp
+
+DirectoryIndex index.html
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json application/xml image/svg+xml font/ttf font/otf
+</IfModule>
+
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json application/xml image/svg+xml font/ttf font/otf
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "^(index|404|_not-found)\.html$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  <FilesMatch "\.(js|css|webp|mp4|woff2|ico|png)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Backwards compatibility for cached/static bundles that still request old PNG assets.
+  RewriteRule ^images/projects/(ahmed-altan|ahmed-altan-logo-icon|asli|beard-transplant|busra|dominika|elanur|fidan|hair-design|hair-transplant|hair-transplant-1|kubra|leyla-2|logo_new|medical-treatment|reconstruction|sibel|yesim)\.png$ /images/projects/$1.webp [R=301,L]
+  RewriteRule ^images/projects/accreditations/(Logo-WFI-off-white|Reddit_Lockup|hiar-transplant-network|logo-bianco-1)\.png$ /images/projects/accreditations/$1.webp [R=301,L]
+  RewriteRule ^images/before-after/(sac1-1|sac-1-2|sac2-1|sac2-2|sac3-1|sac3-2|sakal1|sakal2)\.png$ /images/before-after/$1.webp [R=301,L]
+</IfModule>

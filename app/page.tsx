@@ -2,6 +2,7 @@ import Hero from "@/components/sections/Hero";
 import AboutDrAltan from "@/components/sections/AboutDrAltan";
 import TeamSection from "@/components/sections/TeamSection";
 import ProjectGallery from "@/components/sections/ProjectGallery";
+import BeforeAfterSection from "@/components/sections/BeforeAfterSection";
 import CustomerReviews from "@/components/sections/CustomerReviews";
 import FaqStory from "@/components/sections/FaqStory";
 import Accreditations from "@/components/sections/Accreditations";
@@ -14,6 +15,7 @@ export default function Home() {
       <AboutDrAltan />
       <TeamSection />
       <ProjectGallery />
+      <BeforeAfterSection />
       <CustomerReviews />
       <FaqStory />
       <Accreditations />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m as motion } from "framer-motion";
 import Image from "next/image";
 import { useScrollNavigation } from "@/components/layout/SmoothScrollProvider";
 import type { SiteSectionId } from "@/lib/siteContent";
@@ -17,6 +17,7 @@ const PRELOADER_COMPLETE_EVENT = "preloader:complete";
 const EASE_STANDARD: [number, number, number, number] = [0.16, 1, 0.3, 1];
 const DEFAULT_SECTION_ID = MENU_ITEMS[0]?.sectionIds[0] ?? "intro";
 const ACTIVE_SECTION_LABEL_MAP: Partial<Record<SiteSectionId, string>> = {
+  results: "Results",
   stories: "Stories",
   faq: "FAQ",
 };
@@ -140,16 +141,18 @@ function BrandLockup({
       <div
         className={`relative overflow-hidden rounded-full border ${
           tone === "dark"
-            ? "border-white/16 bg-white/4"
-            : "border-[rgba(23,32,25,0.18)] bg-[var(--color-ink)] shadow-[0_10px_30px_rgba(23,32,25,0.18)]"
+            ? "border-[var(--color-soft-line)] bg-white/45 shadow-[0_10px_30px_rgba(16,23,18,0.08)]"
+            : "border-[var(--color-soft-line)] bg-white/45 shadow-[0_10px_30px_rgba(16,23,18,0.08)]"
         } ${isMenu ? "h-11 w-11 md:h-12 md:w-12" : "h-8 w-8 md:h-9 md:w-9"}`}
       >
         <Image
-          src="/images/projects/ahmed-altan-logo-icon.png"
+          src="/images/projects/logo_new.webp"
           alt="Dr. Ahmed Altan"
-          fill
+          width={48}
+          height={48}
+          sizes={isMenu ? "48px" : "36px"}
           priority
-          className="object-contain object-center scale-[0.92]"
+          className="h-full w-full translate-x-[5%] translate-y-[3%] object-contain object-center p-[3px]"
         />
       </div>
 
@@ -211,7 +214,7 @@ function MenuInfoPanel({
         </AnimatePresence>
       </div>
 
-      <div className="space-y-6 border-t border-white/10 pt-7">
+      <div className="space-y-6 border-t border-[var(--color-hero-line)] pt-7">
         {OFFICES.map((office) => (
           <div key={office.title} className="space-y-2">
             <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--color-hero-muted)]">
@@ -311,7 +314,7 @@ function SubmenuScene({
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div
-          className={`absolute left-[2.85rem] font-[var(--font-manrope)] leading-[0.84] tracking-[-0.08em] text-white/[0.06] ${
+          className={`absolute left-[2.85rem] font-[var(--font-manrope)] leading-[0.84] tracking-[-0.08em] text-[rgba(84,133,100,0.08)] ${
             isCompact
               ? "top-[17%] text-[clamp(4rem,10vw,7.6rem)] md:left-[3.7rem] md:top-[14%]"
               : "top-[18%] text-[clamp(4.5rem,11vw,8.25rem)] md:left-[3.8rem] md:top-[14%]"
@@ -331,7 +334,7 @@ function SubmenuScene({
         className="absolute left-0 top-0 z-20 flex items-center gap-3 text-[10px] uppercase tracking-[0.34em] text-[var(--color-hero-fg)]/84 transition-opacity duration-300 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-accent)]"
       >
         <span>Back</span>
-        <span className="h-px w-9 bg-white/16" />
+        <span className="h-px w-9 bg-[var(--color-hero-line)]" />
       </button>
 
       <div className="relative z-10 flex h-full w-full flex-col justify-center pt-12 md:pt-14">
@@ -350,7 +353,7 @@ function SubmenuScene({
               <span className="min-w-8 text-[10px] uppercase tracking-[0.32em] text-[var(--color-hero-muted)]">
                 {item.index}
               </span>
-              <span className="h-px w-12 bg-white/12" />
+              <span className="h-px w-12 bg-[var(--color-hero-line)]" />
             </div>
 
             {item.children.map((child, childIndex) => {
@@ -362,7 +365,7 @@ function SubmenuScene({
                   type="button"
                   onClick={() => onNavigate(targetId, child.substep)}
                   variants={SUBMENU_ITEM_VARIANTS}
-                  className={`group grid w-full grid-cols-[2.1rem_minmax(0,1fr)_auto] items-start gap-4 border-t border-white/10 text-left transition-colors duration-300 first:border-t-0 md:grid-cols-[2.4rem_minmax(0,1fr)_auto] md:gap-5 ${
+                  className={`group grid w-full grid-cols-[2.1rem_minmax(0,1fr)_auto] items-start gap-4 border-t border-[var(--color-hero-line)] text-left transition-colors duration-300 first:border-t-0 md:grid-cols-[2.4rem_minmax(0,1fr)_auto] md:gap-5 ${
                     isCompact ? "py-2.5 md:py-3" : "py-3.5 md:py-4.5"
                   }`}
                 >
@@ -405,7 +408,6 @@ function SubmenuScene({
 
 export default function Header() {
   const { scrollToSection } = useScrollNavigation();
-  const previousOverflowRef = useRef("");
   const menuNavigationFrameRef = useRef<number | null>(null);
   const [visible, setVisible] = useState(
     () =>
@@ -414,8 +416,9 @@ export default function Header() {
   );
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMenuClosing, setIsMenuClosing] = useState(false);
+  const [isMobileSurface, setIsMobileSurface] = useState(false);
   const [activeSection, setActiveSection] = useState(DEFAULT_SECTION_ID);
-  const [activeTone, setActiveTone] = useState<"light" | "dark">("dark");
+  const [activeTone, setActiveTone] = useState<"light" | "dark">("light");
   const [submenuParentId, setSubmenuParentId] = useState<MenuItem["id"] | null>(
     null
   );
@@ -431,6 +434,18 @@ export default function Header() {
     selectedParent && hasChildren(selectedParent) ? selectedParent : null;
   const infoPanelTitle = submenuItem ? submenuItem.label : ROOT_INFO_TITLE;
   const infoPanelSummary = submenuItem ? submenuItem.summary : ROOT_INFO_SUMMARY;
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1024px), (pointer: coarse)");
+
+    const sync = () => {
+      setIsMobileSurface(media.matches);
+    };
+
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   const openMenu = useCallback(() => {
     setIsMenuClosing(false);
@@ -504,7 +519,12 @@ export default function Header() {
 
     const handler = () => setVisible(true);
     window.addEventListener(PRELOADER_COMPLETE_EVENT, handler, { once: true });
-    return () => window.removeEventListener(PRELOADER_COMPLETE_EVENT, handler);
+    const safetyTimer = window.setTimeout(handler, 3500);
+
+    return () => {
+      window.removeEventListener(PRELOADER_COMPLETE_EVENT, handler);
+      window.clearTimeout(safetyTimer);
+    };
   }, [visible]);
 
   useEffect(() => {
@@ -514,15 +534,16 @@ export default function Header() {
     root.dataset.menuOpen = isMenuVisible ? "true" : "false";
 
     if (isMenuVisible) {
-      previousOverflowRef.current = body.style.overflow;
       body.style.overflow = "hidden";
     } else {
-      body.style.overflow = previousOverflowRef.current;
+      /* Always reset to natural overflow — don't rely on saved value
+         which may have been captured while Preloader was still active */
+      body.style.overflow = "";
     }
 
     return () => {
       root.dataset.menuOpen = "false";
-      body.style.overflow = previousOverflowRef.current;
+      body.style.overflow = "";
     };
   }, [isMenuVisible]);
 
@@ -653,7 +674,7 @@ export default function Header() {
                 aria-controls="site-navigation"
                 aria-label="Open navigation"
                 onClick={openMenu}
-                className={`text-[10px] uppercase tracking-[0.34em] transition-opacity duration-300 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-accent)] ${
+                className={`-mr-3 flex min-h-11 items-center px-3 text-[10px] uppercase tracking-[0.34em] transition-opacity duration-300 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-accent)] ${
                   activeTone === "dark"
                     ? "text-[var(--color-hero-fg)]/88"
                     : "text-[var(--color-ink)]/86"
@@ -671,24 +692,29 @@ export default function Header() {
           <motion.aside
             id="site-navigation"
             className="fixed inset-0 z-[9100] overflow-hidden bg-[var(--color-hero-bg)] text-[var(--color-hero-fg)]"
-            initial="closed"
-            animate="open"
-            exit="closed"
-            variants={MENU_OVERLAY_VARIANTS}
+            initial={isMobileSurface ? { opacity: 0 } : "closed"}
+            animate={isMobileSurface ? { opacity: 1 } : "open"}
+            exit={isMobileSurface ? { opacity: 0 } : "closed"}
+            variants={isMobileSurface ? undefined : MENU_OVERLAY_VARIANTS}
+            transition={
+              isMobileSurface
+                ? { duration: 0.14, ease: EASE_STANDARD }
+                : undefined
+            }
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(109,129,104,0.22),transparent_32%),radial-gradient(circle_at_82%_78%,rgba(255,255,255,0.08),transparent_28%),linear-gradient(180deg,rgba(16,23,18,0.92),rgba(10,15,11,1))]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(84,133,100,0.2),transparent_34%),radial-gradient(circle_at_82%_78%,rgba(255,255,255,0.68),transparent_30%),linear-gradient(180deg,var(--color-cream-light)_0%,var(--color-cream)_48%,var(--color-cream-deep)_100%)]" />
 
             <div className="site-shell relative flex h-full flex-col py-5 md:py-6">
               <motion.div
                 className="flex min-h-[var(--header-height)] items-center justify-between gap-4"
-                variants={MENU_HEADER_VARIANTS}
+                variants={isMobileSurface ? undefined : MENU_HEADER_VARIANTS}
               >
-                <BrandLockup tone="dark" size="menu" />
+                <BrandLockup tone="light" size="menu" />
 
                 <button
                   type="button"
                   onClick={closeMenu}
-                  className="text-[10px] uppercase tracking-[0.34em] text-[var(--color-hero-fg)]/88 transition-opacity duration-300 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-accent)]"
+                  className="-mr-3 flex min-h-11 items-center px-3 text-[10px] uppercase tracking-[0.34em] text-[var(--color-hero-fg)]/88 transition-opacity duration-300 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-accent)]"
                 >
                   Close
                 </button>
@@ -715,7 +741,7 @@ export default function Header() {
                   </div>
 
                   <motion.div
-                    className="space-y-8"
+                    className="hidden space-y-8 lg:block"
                     initial={{ opacity: 0, x: 16 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 10 }}

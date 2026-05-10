@@ -1,14 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { m as motion, useScroll, useTransform } from "framer-motion";
+import ShinyText from "@/components/ui/ShinyText";
 
 const HERO_VIDEO_SRC = "/images/projects/hero-background.mp4";
 const PRELOADER_COMPLETE_EVENT = "preloader:complete";
 const LOOP_CROSSFADE_MS = 900;
 const LOOP_CROSSFADE_BUFFER_SECONDS = LOOP_CROSSFADE_MS / 1000 + 0.12;
 const HERO_TITLE_LINES = ["Dr. Ahmed", "Altan"];
-const HERO_NOTES = ["Hairline Planning", "Micro-FUE Craft", "Istanbul"];
+const HERO_NOTES = [
+  "Hairline Planning",
+  "Micro-FUE Craft",
+  "Beard Transplant",
+  "Istanbul",
+];
 const EASE_STANDARD: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export default function Hero() {
@@ -25,6 +31,7 @@ export default function Hero() {
   const [activeVideoLayer, setActiveVideoLayer] = useState<0 | 1>(0);
   const [crossfadeLayer, setCrossfadeLayer] = useState<0 | 1 | null>(null);
   const [introStarted, setIntroStarted] = useState(false);
+  const [isMobileSurface, setIsMobileSurface] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -36,6 +43,18 @@ export default function Hero() {
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.98]);
   const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.07]);
   const overlayOpacity = useTransform(scrollYProgress, [0, 0.8], [0.26, 0.54]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1024px), (pointer: coarse)");
+
+    const sync = () => {
+      setIsMobileSurface(media.matches);
+    };
+
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -50,7 +69,12 @@ export default function Hero() {
     }
 
     window.addEventListener(PRELOADER_COMPLETE_EVENT, unlockVideo, { once: true });
-    return () => window.removeEventListener(PRELOADER_COMPLETE_EVENT, unlockVideo);
+    const safetyTimer = window.setTimeout(unlockVideo, 3500);
+
+    return () => {
+      window.removeEventListener(PRELOADER_COMPLETE_EVENT, unlockVideo);
+      window.clearTimeout(safetyTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -62,7 +86,7 @@ export default function Hero() {
   }, [crossfadeLayer]);
 
   useEffect(() => {
-    if (!canStartVideo) return;
+    if (!canStartVideo || isMobileSurface) return;
 
     const videos = [videoPrimaryRef.current, videoSecondaryRef.current] as const;
     const [firstVideo, secondVideo] = videos;
@@ -138,13 +162,14 @@ export default function Hero() {
     return () => {
       cancelLoopHandles();
     };
-  }, [canStartVideo]);
+  }, [canStartVideo, isMobileSurface]);
 
   useEffect(() => {
     if (!canStartVideo) return;
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const holdMs = reducedMotion ? 40 : 120;
+    // On mobile there's no video to wait for — show content immediately
+    const holdMs = isMobileSurface ? 0 : reducedMotion ? 40 : 120;
 
     const startTimer = window.setTimeout(() => {
       setIntroStarted(true);
@@ -153,20 +178,23 @@ export default function Hero() {
     return () => {
       window.clearTimeout(startTimer);
     };
-  }, [canStartVideo]);
+  }, [canStartVideo, isMobileSurface]);
 
   return (
     <motion.section
       id="intro"
       data-nav-section
-      data-header-tone="dark"
+      data-header-tone="light"
       ref={sectionRef}
-      className={`relative flex min-h-screen h-svh items-stretch overflow-hidden bg-[var(--color-hero-bg)] ${canStartVideo ? "" : "pointer-events-none"}`}
+      className="hero-flow-section relative flex min-h-[100svh] h-svh items-stretch overflow-hidden bg-[var(--color-hero-bg)]"
       initial={false}
-      animate={{ opacity: canStartVideo ? 1 : 0 }}
-      transition={{ duration: 0.55, ease: EASE_STANDARD }}
+      animate={{ opacity: (isMobileSurface || canStartVideo) ? 1 : 0 }}
+      transition={{ duration: isMobileSurface ? 0.2 : 0.55, ease: EASE_STANDARD }}
     >
-      <motion.div className="absolute inset-0 z-0 overflow-hidden" style={{ scale: videoScale }}>
+      <motion.div
+        className="absolute inset-0 z-0 overflow-hidden"
+        style={isMobileSurface ? undefined : { scale: videoScale }}
+      >
         <motion.div
           className="absolute inset-0 overflow-hidden"
           initial={false}
@@ -174,7 +202,7 @@ export default function Hero() {
           transition={{ duration: 0.9, ease: EASE_STANDARD }}
         >
           <div className="absolute left-1/2 top-1/2 h-full w-full min-h-[56.25vw] min-w-[177.78vh] -translate-x-1/2 -translate-y-1/2">
-            {canStartVideo && !videoFailed
+            {canStartVideo && !videoFailed && !isMobileSurface
               ? ([0, 1] as const).map((layer) => {
                   const isActive = layer === activeVideoLayer;
                   const isCrossfadeTarget = layer === crossfadeLayer;
@@ -196,7 +224,7 @@ export default function Hero() {
                       src={HERO_VIDEO_SRC}
                       muted
                       playsInline
-                      preload="auto"
+                      preload="metadata"
                       initial={false}
                       animate={{
                         opacity: layerOpacity,
@@ -223,15 +251,18 @@ export default function Hero() {
           </div>
         </motion.div>
 
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0d0b] via-[#0f1511]/60 to-[#101712]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(251,250,245,0.72),rgba(245,240,231,0.82)_52%,rgba(238,230,217,0.96))]" />
       </motion.div>
 
       <div className="absolute inset-0 z-[1] pointer-events-none">
-        <div className="absolute left-[8%] top-[16%] h-[34vh] w-[34vw] rounded-full bg-[rgba(109,129,104,0.18)] blur-[94px]" />
-        <div className="absolute bottom-[14%] right-[9%] h-[22vh] w-[24vw] rounded-full bg-[rgba(255,255,255,0.08)] blur-[108px]" />
+        <div className="absolute left-[8%] top-[16%] h-[34vh] w-[34vw] rounded-full bg-[rgba(84,133,100,0.16)] blur-[94px]" />
+        <div className="absolute bottom-[14%] right-[9%] h-[22vh] w-[24vw] rounded-full bg-white/70 blur-[108px]" />
       </div>
 
-      <motion.div className="absolute inset-0 z-[2] bg-black" style={{ opacity: overlayOpacity }} />
+      <motion.div
+        className="absolute inset-0 z-[2] bg-[var(--color-cream)]"
+        style={isMobileSurface ? { opacity: 0.34 } : { opacity: overlayOpacity }}
+      />
 
       <motion.div
         className="absolute inset-0 z-[4] pointer-events-none overflow-hidden"
@@ -245,7 +276,7 @@ export default function Hero() {
           transition={{ duration: 2.9, ease: [0.22, 1, 0.36, 1] }}
           style={{
             background:
-              "linear-gradient(135deg, rgba(4,7,12,0) 0%, rgba(4,7,12,0.08) 12%, rgba(4,7,12,0.58) 24%, rgba(4,7,12,0.9) 34%, rgba(4,7,12,1) 46%)",
+              "linear-gradient(135deg, rgba(245,240,231,0) 0%, rgba(245,240,231,0.08) 12%, rgba(245,240,231,0.58) 24%, rgba(245,240,231,0.9) 34%, rgba(245,240,231,1) 46%)",
             filter: "blur(16px)",
           }}
         />
@@ -261,8 +292,8 @@ export default function Hero() {
       />
 
       <motion.div
-        className="site-shell relative z-10 flex h-full min-h-screen items-end py-12 md:py-14"
-        style={{ y, opacity, scale }}
+        className="site-shell relative z-10 flex h-full items-end py-12 md:py-14"
+        style={isMobileSurface ? undefined : { y, opacity, scale }}
       >
         <div className="section-shell w-full pt-[calc(var(--header-height)+48px)]">
             <div className="section-grid items-end lg:grid-cols-[minmax(0,620px)_minmax(180px,220px)] lg:justify-between">
@@ -278,7 +309,7 @@ export default function Hero() {
                 transition={{ duration: 0.55, delay: 0.22, ease: EASE_STANDARD }}
               >
                 <span className="section-label-line" />
-                Istanbul / Surgical Hair Restoration
+                <ShinyText text="Istanbul / Surgical Hair Restoration" />
               </motion.p>
 
               <div className="mt-6 overflow-hidden">
@@ -315,7 +346,7 @@ export default function Hero() {
             </div>
 
             <motion.div
-              className="section-rail grid gap-3 border-t border-white/10 pt-5 text-[11px] uppercase tracking-[0.28em] text-[var(--color-hero-muted)] lg:max-w-[220px] lg:border-l lg:border-t-0 lg:pl-6"
+              className="section-rail grid gap-3 border-t border-[var(--color-hero-line)] pt-5 text-[11px] uppercase tracking-[0.28em] text-[var(--color-hero-muted)] lg:max-w-[220px] lg:border-l lg:border-t-0 lg:pl-6"
               initial={{ opacity: 0, y: 24 }}
               animate={introStarted ? { opacity: 0.88, y: 0 } : { opacity: 0, y: 24 }}
               transition={{ duration: 0.7, delay: 0.84, ease: EASE_STANDARD }}

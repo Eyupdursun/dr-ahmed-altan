@@ -54,14 +54,22 @@ export const MENU_ITEMS: MenuItem[] = [
     summary:
       "Treatments arranged as quiet studies in design, graft discipline, and measured restoration.",
     targetId: "solutions",
-    sectionIds: ["intro", "solutions", "stories", "faq"],
-    children: SOLUTION_CASES.map((s, i) => ({
-      id: s.id,
-      label: s.title,
-      meta: `${s.category} / ${s.tag}`,
-      targetId: "solutions" as SiteSectionId,
-      substep: i,
-    })),
+    sectionIds: ["intro", "solutions", "results", "stories", "faq"],
+    children: [
+      ...SOLUTION_CASES.map((s, i) => ({
+        id: s.id,
+        label: s.title,
+        meta: `${s.category} / ${s.tag}`,
+        targetId: "solutions" as SiteSectionId,
+        substep: i,
+      })),
+      {
+        id: "hair-faq",
+        label: "FAQ",
+        meta: "Questions / recovery and planning",
+        targetId: "faq" as SiteSectionId,
+      },
+    ],
   },
   {
     id: "about",

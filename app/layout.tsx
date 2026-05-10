@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
-import CustomCursor from "@/components/ui/CustomCursor";
+import MotionProvider from "@/components/layout/MotionProvider";
 import Preloader from "@/components/ui/Preloader";
 import Header from "@/components/ui/Header";
 
@@ -18,10 +18,23 @@ const manrope = Manrope({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#f5f0e7",
+};
+
 export const metadata: Metadata = {
   title: "Dr. Ahmed Altan — The Architect of Hair",
   description:
     "Natural hairline design & Micro-FUE strategy by Dr. Ahmed Altan. High-end surgical craftsmanship in Istanbul.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
   openGraph: {
     title: "Dr. Ahmed Altan — The Architect of Hair",
     description:
@@ -38,12 +51,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${manrope.variable}`}>
       <body className="antialiased">
-        <SmoothScrollProvider>
-          <Preloader />
-          <Header />
-          <CustomCursor />
-          {children}
-        </SmoothScrollProvider>
+        <MotionProvider>
+          <SmoothScrollProvider>
+            <Preloader />
+            <Header />
+            {children}
+          </SmoothScrollProvider>
+        </MotionProvider>
       </body>
     </html>
   );
